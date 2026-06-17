@@ -141,16 +141,89 @@ const meRes = await fetch(`${APP_URL}/api/me`);
 const meJson = await meRes.json();
 assert(meRes.status === 401 && meJson.ok === false, `/api/me unauthenticated → 401 (got ${meRes.status})`);
 
-// 9. /api/admin-test — unauthenticated should return 401
-console.log("\n9. /api/admin-test — unauthenticated should return 401...");
-const adminRes = await fetch(`${APP_URL}/api/admin-test`);
-assert(adminRes.status === 401, `/api/admin-test unauthenticated → 401 (got ${adminRes.status})`);
+// 9. /api/admin-test was removed after Gate 3 verification — skip.
 
 // 10. /api/health still returns ok
 console.log("\n10. /api/health should still return ok...");
 const healthRes  = await fetch(`${APP_URL}/api/health`);
 const healthJson = await healthRes.json();
 assert(healthJson.ok === true, `/api/health → ok`);
+
+// ── Phase 2: Seed data + new tenant tables ─────────────────────────────────────
+
+// Seed the database so Phase 2 tables have data.
+// Re-using service client directly to avoid spawning a subprocess.
+const SEED_EMAILS = ["alice@alpha.test", "bob@alpha.test", "carol@beta.test", "dave@beta.test"];
+const { data: seedUsers } = await service.auth.admin.listUsers();
+const alice = seedUsers?.users?.find(u => u.email === "alice@alpha.test");
+const carol = seedUsers?.users?.find(u => u.email === "carol@beta.test");
+
+console.log("\n11. Phase 2 tables — RLS isolation on research_reports...");
+if (alice && carol) {
+  // Sign in as alice (Alpha Capital admin)
+  const tokenAlice = await signIn("alice@alpha.test", "password123");
+  const clientAlice = userClient(tokenAlice.access_token);
+
+  // Sign in as carol (Beta Ventures admin)
+  const tokenCarol = await signIn("carol@beta.test", "password123");
+  const clientCarol = userClient(tokenCarol.access_token);
+
+  const { data: aliceReports } = await clientAlice.from("research_reports").select("id, org_id");
+  const { data: carolReports } = await clientCarol.from("research_reports").select("id, org_id");
+
+  // Get their org_ids via service client (bypasses RLS — authoritative lookup).
+  const { data: aliceProf } = await service.from("profiles").select("org_id").eq("id", alice.id).single();
+  const { data: carolProf } = await service.from("profiles").select("org_id").eq("id", carol.id).single();
+
+  assert(
+    aliceReports?.length > 0 && aliceReports?.every(r => r.org_id === aliceProf?.org_id),
+    `Alice sees only Alpha Capital reports (${aliceReports?.length} rows)`
+  );
+  assert(
+    carolReports?.length > 0 && carolReports?.every(r => r.org_id === carolProf?.org_id),
+    `Carol sees only Beta Ventures reports (${carolReports?.length} rows)`
+  );
+
+  // Cross-org: alice cannot read carol's reports
+  const carolReportId = carolReports?.[0]?.id;
+  if (carolReportId) {
+    const { data: crossReport } = await clientAlice
+      .from("research_reports").select("id").eq("id", carolReportId).maybeSingle();
+    assert(!crossReport, `Cross-tenant report read denied for alice → carol's report`);
+  }
+
+  console.log("\n12. Phase 2 tables — watchlist RLS isolation...");
+  const { data: aliceWatchlist } = await clientAlice.from("watchlist_items").select("org_id");
+  const { data: carolWatchlist } = await clientCarol.from("watchlist_items").select("org_id");
+  assert(
+    aliceWatchlist?.length > 0 && aliceWatchlist?.every(w => w.org_id === aliceProf?.org_id),
+    `Alice sees only Alpha Capital watchlist items (${aliceWatchlist?.length} rows)`
+  );
+  assert(
+    carolWatchlist?.length > 0 && carolWatchlist?.every(w => w.org_id === carolProf?.org_id),
+    `Carol sees only Beta Ventures watchlist items (${carolWatchlist?.length} rows)`
+  );
+
+  console.log("\n13. Phase 2 tables — documents RLS isolation...");
+  const { data: aliceDocs } = await clientAlice.from("documents").select("org_id");
+  const { data: carolDocs } = await clientCarol.from("documents").select("org_id");
+  assert(
+    aliceDocs?.length > 0 && aliceDocs?.every(d => d.org_id === aliceProf?.org_id),
+    `Alice sees only Alpha Capital documents (${aliceDocs?.length} rows)`
+  );
+  assert(
+    carolDocs?.length > 0 && carolDocs?.every(d => d.org_id === carolProf?.org_id),
+    `Carol sees only Beta Ventures documents (${carolDocs?.length} rows)`
+  );
+
+  console.log("\n14. query_cache — accessible to both tenants (no RLS)...");
+  const { data: cacheAlice, error: cacheErrA } = await clientAlice.from("query_cache").select("cache_key").limit(1);
+  const { data: cacheCarol, error: cacheErrC } = await clientCarol.from("query_cache").select("cache_key").limit(1);
+  assert(!cacheErrA && cacheAlice !== null, `Alice can read query_cache`);
+  assert(!cacheErrC && cacheCarol !== null, `Carol can read query_cache`);
+} else {
+  console.log("  (skipping Phase 2 table tests — seed data not present; run npm run seed first)");
+}
 
 // ── Summary ───────────────────────────────────────────────────────────────────
 console.log(`\n=== Results: ${passed} passed, ${failed} failed ===\n`);
