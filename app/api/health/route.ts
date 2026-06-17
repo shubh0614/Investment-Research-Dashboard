@@ -7,8 +7,12 @@ export async function GET() {
     // Minimal round-trip — just checks connectivity, not a real query.
     const { error } = await supabase.from("_health_check").select("1").limit(1).maybeSingle();
 
-    // A "relation does not exist" error still means the DB is reachable.
-    const dbOk = !error || error.code === "42P01";
+    // A missing-table error means the DB is reachable — the table just doesn't exist yet.
+    // PostgreSQL returns code 42P01 ("undefined_table"); PostgREST returns a "schema cache" message.
+    const dbOk =
+      !error ||
+      error.code === "42P01" ||
+      (error.message ?? "").toLowerCase().includes("schema cache");
 
     if (!dbOk) {
       return NextResponse.json(
