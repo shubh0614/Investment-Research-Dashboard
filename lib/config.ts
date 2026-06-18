@@ -17,11 +17,10 @@ const envSchema = z.object({
   LLM_MODEL: z.string().default(""),
   LLM_API_KEY: z.string().default(""),
 
-  // Embeddings — optional until Phase 3
-  EMBEDDING_PROVIDER: z.string().default(""),
-  EMBEDDING_MODEL: z.string().default(""),
+  // Embeddings — OPENAI_API_KEY used by embed.ts (text-embedding-3-small, 1536 dims)
+  OPENAI_API_KEY: z.string().default(""),
 
-  // External data APIs — optional until Phase 3
+  // External data APIs — optional (demo data pre-warmed in query_cache by seed)
   MARKET_DATA_API_KEY: z.string().default(""),
   NEWS_API_KEY: z.string().default(""),
 

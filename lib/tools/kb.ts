@@ -83,7 +83,7 @@ async function vectorSearch(
   if (error) throw new Error(error.message);
 
   const chunks: KBChunk[] = (data ?? []).map((row) => {
-    const doc = row.documents as { title: string; source_label: string; company: string };
+    const doc = (row.documents as unknown) as { title: string; source_label: string; company: string };
     return {
       id:           row.id,
       document_id:  row.document_id,
@@ -136,7 +136,7 @@ async function keywordSearch(
   if (error) throw new Error(error.message);
 
   const chunks: KBChunk[] = (data ?? []).map((row) => {
-    const doc = row.documents as { title: string; source_label: string; company: string };
+    const doc = (row.documents as unknown) as { title: string; source_label: string; company: string };
     return {
       id:           row.id,
       document_id:  row.document_id,

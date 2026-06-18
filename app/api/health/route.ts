@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { config } from "@/lib/config";
 
 export async function GET() {
   try {
@@ -21,7 +22,8 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json({ ok: true, data: { db: "ok" } });
+    const llmOk = config.LLM_API_KEY.length > 0;
+    return NextResponse.json({ ok: true, data: { db: "ok", llm: llmOk ? "ok" : "not_configured" } });
   } catch (err) {
     return NextResponse.json(
       {

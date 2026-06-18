@@ -9,6 +9,7 @@
 
 import { embedMany } from "ai";
 import { openai } from "@ai-sdk/openai";
+import { config } from "@/lib/config";
 
 // Embedding dimension pinned to match the vector(1536) column.
 // If you swap the model, update the migration to rebuild the column.
@@ -16,8 +17,7 @@ export const EMBEDDING_DIM = 1536;
 const DEFAULT_MODEL        = "text-embedding-3-small";
 
 function isEmbeddingConfigured(): boolean {
-  const key = process.env.OPENAI_API_KEY ?? process.env.LLM_API_KEY ?? "";
-  return key.length > 0;
+  return (config.OPENAI_API_KEY || config.LLM_API_KEY).length > 0;
 }
 
 /**
