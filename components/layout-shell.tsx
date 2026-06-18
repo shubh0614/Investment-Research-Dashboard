@@ -17,14 +17,11 @@ interface LayoutShellProps {
 const COLLAPSED_KEY = "klypup-sidebar-collapsed";
 
 export function LayoutShell({ profile, org, children }: LayoutShellProps) {
-  const [mobileOpen,  setMobileOpen]  = useState(false);
-  const [collapsed,   setCollapsed]   = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed,  setCollapsed]  = useState(false);
 
-  // Read collapsed state from localStorage after mount
   useEffect(() => {
-    try {
-      setCollapsed(localStorage.getItem(COLLAPSED_KEY) === "true");
-    } catch {}
+    try { setCollapsed(localStorage.getItem(COLLAPSED_KEY) === "true"); } catch {}
   }, []);
 
   function toggleCollapsed() {
@@ -43,25 +40,25 @@ export function LayoutShell({ profile, org, children }: LayoutShellProps) {
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
+          className="md:hidden"
           style={{
             position: "fixed", inset: 0, zIndex: 20,
             background: "rgba(14,17,22,.65)",
             backdropFilter: "blur(3px)",
             WebkitBackdropFilter: "blur(3px)",
           }}
-          className="md:hidden"
         />
       )}
 
-      {/* Sidebar wrapper — fixed on mobile, in-flow on desktop */}
+      {/* Sidebar — fixed on mobile, in-flow on desktop */}
       <div
+        className="md:relative md:!transform-none md:flex md:h-full"
         style={{
           position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 30,
           width: sidebarW,
           transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
           transition: "transform 240ms cubic-bezier(.2,.7,.2,1)",
         }}
-        className="md:relative md:!transform-none md:flex md:h-full"
       >
         <NavSidebar
           profile={profile}
@@ -71,7 +68,7 @@ export function LayoutShell({ profile, org, children }: LayoutShellProps) {
         />
       </div>
 
-      {/* Spacer so content doesn't slide under the fixed sidebar on desktop */}
+      {/* Desktop spacer so main content doesn't sit under the fixed sidebar */}
       <div
         className="sidebar-expand hidden md:block shrink-0"
         style={{ width: sidebarW }}
@@ -80,11 +77,10 @@ export function LayoutShell({ profile, org, children }: LayoutShellProps) {
 
       {/* Main content */}
       <main style={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto", minWidth: 0 }}>
-        {/* Mobile top bar */}
+        {/* Mobile top bar — ONLY shown on mobile via className, no inline display style */}
         <div
-          className="md:hidden"
+          className="flex md:hidden items-center gap-3"
           style={{
-            display: "flex", alignItems: "center", gap: 12,
             padding: "12px 16px",
             borderBottom: "1px solid var(--border)",
             background: "var(--surface)",
