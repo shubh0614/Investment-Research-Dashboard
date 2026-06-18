@@ -140,8 +140,14 @@ export default function NewResearchPage() {
       <div style={{ position: "relative", zIndex: 1, maxWidth: 560, margin: "0 auto", padding: "48px 32px 32px" }}>
         {/* Header */}
         <div style={{ marginBottom: 36, textAlign: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 52, height: 52, borderRadius: 16, background: "var(--accent-weak)", color: "var(--accent)", marginBottom: 16, boxShadow: "0 0 0 8px color-mix(in srgb, var(--accent) 6%, transparent)" }}>
-            <Sparkles size={22} strokeWidth={1.5} />
+          {/* Icon with radar rings */}
+          <div style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+            <div className="radar-ring" />
+            <div className="radar-ring" />
+            <div className="radar-ring" />
+            <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: 52, height: 52, borderRadius: 16, background: "var(--accent-weak)", color: "var(--accent)", boxShadow: "0 0 0 8px color-mix(in srgb, var(--accent) 6%, transparent), 0 0 24px color-mix(in srgb, var(--accent) 20%, transparent)" }}>
+              <Sparkles size={22} strokeWidth={1.5} />
+            </div>
           </div>
           <h1 className="gradient-heading" style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.022em", lineHeight: 1.2 }}>
             Research anything
@@ -153,7 +159,8 @@ export default function NewResearchPage() {
 
         {/* Query form */}
         <form onSubmit={handleSubmit} className="reveal">
-          <div style={{ borderRadius: 14, border: "1px solid var(--border)", background: "var(--surface)", overflow: "hidden", boxShadow: "0 4px 24px rgba(16,18,22,.1)" }}>
+          <div className={running ? "ai-thinking-wrap" : ""} style={running ? { borderRadius: 15.5 } : {}}>
+          <div style={{ borderRadius: running ? 14 : 14, border: running ? "none" : "1px solid var(--border)", background: "var(--surface)", overflow: "hidden", boxShadow: "0 4px 24px rgba(16,18,22,.1)" }}>
             <textarea
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -195,6 +202,7 @@ export default function NewResearchPage() {
                 {running ? "Researching…" : "Research"}
               </button>
             </div>
+          </div>
           </div>
         </form>
 

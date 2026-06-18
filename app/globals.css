@@ -412,3 +412,105 @@
   100% { transform: scale(1); opacity: 1; }
 }
 .dot-pop { animation: dot-pop 300ms var(--ease-out) both; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   STANDING-OUT LAYER — collapsible sidebar + radar + AI border
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Sidebar width transition ───────────────────────────────────── */
+.sidebar-expand {
+  transition: width 230ms cubic-bezier(.2,.7,.2,1);
+}
+
+/* ── Sliding nav indicator with neon glow ───────────────────────── */
+.nav-indicator {
+  position: absolute;
+  left: 8px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 8px  color-mix(in srgb, var(--accent) 80%, transparent),
+              0 0 20px color-mix(in srgb, var(--accent) 40%, transparent);
+  pointer-events: none;
+  transition: top 230ms cubic-bezier(.2,.7,.2,1),
+              height 230ms cubic-bezier(.2,.7,.2,1);
+}
+
+/* ── AI thinking animated border ────────────────────────────────── */
+@keyframes ai-thinking-flow {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+.ai-thinking-wrap {
+  padding: 1.5px;
+  border-radius: 15.5px;
+  background: linear-gradient(
+    135deg,
+    var(--accent)   0%,
+    var(--positive) 40%,
+    color-mix(in srgb, var(--accent) 60%, var(--positive) 40%) 70%,
+    var(--accent)   100%
+  );
+  background-size: 300% 300%;
+  animation: ai-thinking-flow 2.2s ease-in-out infinite;
+}
+
+/* ── Radar pulse rings ───────────────────────────────────────────── */
+@keyframes radar-pulse {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0;   }
+}
+.radar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  animation: radar-pulse 2.8s ease-out infinite;
+  pointer-events: none;
+}
+.radar-ring:nth-child(2) { animation-delay: 0.93s; }
+.radar-ring:nth-child(3) { animation-delay: 1.86s; }
+
+/* ── Animated hero gradient ─────────────────────────────────────── */
+@keyframes hero-drift {
+  0%, 100% { background-position: 0%   50%; }
+  50%       { background-position: 100% 50%; }
+}
+.hero-animated {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent)   9%, var(--surface)) 0%,
+    var(--surface) 40%,
+    color-mix(in srgb, var(--positive) 5%, var(--surface)) 80%,
+    var(--surface) 100%
+  );
+  background-size: 300% 300%;
+  animation: hero-drift 9s ease-in-out infinite;
+}
+
+/* ── Collapsed sidebar CSS tooltip ──────────────────────────────── */
+.sidebar-tooltip {
+  position: relative;
+}
+.sidebar-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms var(--ease-out);
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(16,18,22,.22);
+}
+.sidebar-tooltip:hover::after { opacity: 1; }

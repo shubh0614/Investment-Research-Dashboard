@@ -30,8 +30,8 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto w-full max-w-5xl px-8 py-10 page-enter" style={{ color: "var(--text)" }}>
       {/* ── Hero ── */}
-      <div className="hero-glow mb-8 rounded-2xl border px-7 py-8"
-           style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <div className="hero-animated hero-glow mb-8 rounded-2xl border px-7 py-8"
+           style={{ border: "1px solid var(--border)" }}>
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="rounded-md px-2 py-0.5 font-mono text-xs font-medium"
                 style={{ background: "var(--accent-weak)", color: "var(--accent)" }}>
