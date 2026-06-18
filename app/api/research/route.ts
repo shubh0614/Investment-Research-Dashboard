@@ -1,27 +1,56 @@
 /**
- * POST /api/research — Phase 4 entry point.
+ * /api/research
  *
- * Validates the request, resolves the authenticated session, and calls the
- * orchestrator. Returns a schema-valid ResearchReport on success.
+ * GET  — list the org's saved reports (tag + text filter, paginated).
+ * POST — run the AI orchestrator and return an unsaved ResearchReport.
  *
- * Auth model (from Phase 1):
- * - proxy.ts passes all /api/* through; this route handles auth itself.
- * - Returns 401 for unauthenticated requests, 403 if profile is missing.
- * - The session-bound Supabase client passed to the orchestrator ensures
- *   RLS is enforced for all KB and tool queries.
- *
- * This endpoint ONLY runs the research. Saving is a separate POST /api/research/save
- * introduced in Phase 5 (CRUD). Separation is intentional — the user should be
- * able to inspect the result before deciding to save it.
+ * Separation of run vs save is intentional: the user inspects the result
+ * before deciding to persist it. Saving is POST /api/research/save (Phase 5).
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
-import { getProfile }   from "@/lib/repositories/profiles";
+import { requireAuth } from "@/lib/api/auth";
 import { runOrchestrator } from "@/lib/ai/orchestrator";
+import { listReports } from "@/lib/services/research";
 
-const RequestSchema = z.object({
+// ── GET /api/research ─────────────────────────────────────────────────────────
+
+const ListQuerySchema = z.object({
+  tag:    z.string().min(1).optional(),
+  q:      z.string().min(1).optional(),
+  limit:  z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+export async function GET(req: NextRequest) {
+  const auth = await requireAuth();
+  if (!auth.ok) return auth.response;
+
+  const params = Object.fromEntries(req.nextUrl.searchParams);
+  const parsed = ListQuerySchema.safeParse(params);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { ok: false, error: { code: "VALIDATION_ERROR", message: "Invalid query params",
+          details: parsed.error.issues.map((i) => ({ field: i.path.join("."), message: i.message })) } },
+      { status: 422 },
+    );
+  }
+
+  try {
+    const result = await listReports(auth.ctx.supabase, auth.ctx.orgId, parsed.data);
+    return NextResponse.json({ ok: true, data: result });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: { code: "LIST_FAILED", message: String(err) } },
+      { status: 500 },
+    );
+  }
+}
+
+// ── POST /api/research ────────────────────────────────────────────────────────
+
+const RunSchema = z.object({
   query: z
     .string({ message: "query is required" })
     .min(3,    { message: "query must be at least 3 characters" })
@@ -31,23 +60,10 @@ const RequestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   // ── Auth ─────────────────────────────────────────────────────────────────
-  const supabase = await createClient();
-  const { data: { user }, error: authErr } = await supabase.auth.getUser();
+  const auth = await requireAuth();
+  if (!auth.ok) return auth.response;
 
-  if (authErr || !user) {
-    return NextResponse.json(
-      { ok: false, error: { code: "UNAUTHORIZED", message: "Not authenticated" } },
-      { status: 401 },
-    );
-  }
-
-  const profile = await getProfile(supabase, user.id);
-  if (!profile) {
-    return NextResponse.json(
-      { ok: false, error: { code: "PROFILE_NOT_FOUND", message: "Complete onboarding first" } },
-      { status: 403 },
-    );
-  }
+  const { supabase } = auth.ctx;
 
   // ── Validate request body ─────────────────────────────────────────────────
   let body: unknown;
@@ -60,7 +76,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const parsed = RequestSchema.safeParse(body);
+  const parsed = RunSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       {
@@ -78,7 +94,7 @@ export async function POST(req: NextRequest) {
   const { query } = parsed.data;
 
   // ── Run orchestrator ──────────────────────────────────────────────────────
-  const result = await runOrchestrator({ query, supabase });
+  const result = await runOrchestrator({ query, supabase: supabase });
 
   if (!result.ok) {
     const statusMap: Record<string, number> = {
