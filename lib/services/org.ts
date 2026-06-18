@@ -31,6 +31,31 @@ export async function getInviteCode(
   return (data as { invite_code: string }).invite_code;
 }
 
+/** Remove a member from the org. Admin cannot remove themselves (RLS also enforces this). */
+export async function removeMember(
+  supabase: SupabaseClient,
+  memberId: string,
+  orgId:    string,
+): Promise<void> {
+  // Verify the target exists in this org before attempting delete.
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", memberId)
+    .eq("org_id", orgId)
+    .single();
+
+  if (!target) throw new Error("Member not found in this organisation");
+
+  const { error } = await supabase
+    .from("profiles")
+    .delete()
+    .eq("id", memberId)
+    .eq("org_id", orgId);
+
+  if (error) throw new Error(`Failed to remove member: ${error.message}`);
+}
+
 /** List all members of an org, ordered by creation date. */
 export async function getMembers(
   supabase: SupabaseClient,
