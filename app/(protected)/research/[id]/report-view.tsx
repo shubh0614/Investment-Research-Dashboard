@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp,
-  ExternalLink, Clock, Zap, BarChart2, Tag, ArrowLeft,
+  ExternalLink, Clock, Zap, BarChart2, Tag, ArrowLeft, FileDown,
 } from "lucide-react";
 import { PriceChart } from "@/components/price-chart";
 import type { ReportRow } from "@/lib/services/research";
@@ -355,12 +355,41 @@ export function ReportView({ report: row }: { report: ReportRow }) {
 
       {/* Title + meta */}
       <div className="mb-6">
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: "var(--text)", letterSpacing: "-0.012em" }}
-        >
-          {row.title || r.meta?.query_text || "Research Report"}
-        </h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1
+            className="text-2xl font-semibold"
+            style={{ color: "var(--text)", letterSpacing: "-0.012em" }}
+          >
+            {row.title || r.meta?.query_text || "Research Report"}
+          </h1>
+          {/* Export buttons */}
+          <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
+            <a
+              href={`/api/research/${row.id}/export?format=csv`}
+              download
+              className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150"
+              style={{ color: "var(--text-muted)", border: "1px solid var(--border)", background: "var(--surface)" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--accent)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--accent)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--border)"; }}
+              title="Download CSV"
+            >
+              <FileDown size={12} strokeWidth={1.5} />
+              CSV
+            </a>
+            <a
+              href={`/api/research/${row.id}/export?format=pdf`}
+              download
+              className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150"
+              style={{ color: "var(--text-muted)", border: "1px solid var(--border)", background: "var(--surface)" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--accent)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--accent)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--border)"; }}
+              title="Download PDF"
+            >
+              <FileDown size={12} strokeWidth={1.5} />
+              PDF
+            </a>
+          </div>
+        </div>
         <div className="mt-2 flex items-center gap-3 flex-wrap">
           <span className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
             <Clock size={12} strokeWidth={1.5} />
