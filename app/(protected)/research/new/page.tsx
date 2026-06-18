@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Search, Sparkles, ArrowRight, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { apiFetch } from "@/lib/api/client";
+import { toast } from "@/lib/toast";
 import type { ResearchReport } from "@/lib/ai/schemas";
 
 const EXAMPLES = [
@@ -13,17 +14,85 @@ const EXAMPLES = [
   "Summarize recent news and sentiment around Apple — last 30 days only.",
 ];
 
+const STEPS = [
+  { key: "planning",     label: "Planning",      desc: "Selecting tools" },
+  { key: "running",      label: "Fetching data",  desc: "Market data, news, filings" },
+  { key: "synthesizing", label: "Synthesizing",   desc: "Building your report" },
+] as const;
+
 type Phase =
   | { step: "idle" }
   | { step: "planning" }
-  | { step: "running"; tools: string[] }
+  | { step: "running" }
   | { step: "synthesizing" }
   | { step: "error"; message: string };
 
+function StepProgress({ phase }: { phase: Phase }) {
+  const stepIndex = { planning: 0, running: 1, synthesizing: 2 } as const;
+  const current = phase.step !== "idle" && phase.step !== "error"
+    ? stepIndex[phase.step as keyof typeof stepIndex] ?? -1
+    : -1;
+
+  return (
+    <div style={{ padding: "20px 24px 24px" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        {STEPS.map((step, i) => {
+          const done   = i < current;
+          const active = i === current;
+          return (
+            <div key={step.key} style={{ display: "flex", flex: i < STEPS.length - 1 ? 1 : "none", alignItems: "flex-start" }}>
+              {/* dot + label */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+                <div
+                  className={active ? "step-dot-active dot-pop" : done ? "dot-pop" : ""}
+                  style={{
+                    width: 10, height: 10, borderRadius: "50%", flexShrink: 0,
+                    background: done || active ? "var(--accent)" : "var(--surface-2)",
+                    border: done || active ? "none" : "2px solid var(--border)",
+                    transition: "background 400ms, border 400ms",
+                  }}
+                />
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ fontSize: "11px", fontWeight: 600, color: done || active ? "var(--accent)" : "var(--text-muted)", transition: "color 300ms", whiteSpace: "nowrap" }}>
+                    {step.label}
+                  </p>
+                  <p style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "1px", whiteSpace: "nowrap" }}>
+                    {active ? step.desc : ""}
+                  </p>
+                </div>
+              </div>
+
+              {/* connector line */}
+              {i < STEPS.length - 1 && (
+                <div style={{ flex: 1, height: 2, marginTop: 4, marginLeft: 8, marginRight: 8, background: "var(--border)", position: "relative", borderRadius: 2, overflow: "hidden" }}>
+                  <div
+                    className={done ? "line-grow" : ""}
+                    style={{
+                      position: "absolute", inset: 0,
+                      background: "var(--accent)",
+                      transform: done ? "scaleX(1)" : "scaleX(0)",
+                      transformOrigin: "left",
+                      transition: done ? "none" : "transform 0ms",
+                      borderRadius: 2,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function NewResearchPage() {
-  const router   = useRouter();
-  const [query, setQuery]   = useState("");
-  const [phase, setPhase]   = useState<Phase>({ step: "idle" });
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const prefill      = searchParams.get("q") ?? "";
+
+  const [query, setQuery] = useState(prefill);
+  const [phase, setPhase] = useState<Phase>({ step: "idle" });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,7 +101,8 @@ export default function NewResearchPage() {
     setPhase({ step: "planning" });
 
     try {
-      setPhase({ step: "running", tools: [] });
+      await new Promise((r) => setTimeout(r, 600)); // let planning step render
+      setPhase({ step: "running" });
 
       const report = await apiFetch<ResearchReport>("/api/research", {
         method: "POST",
@@ -41,7 +111,6 @@ export default function NewResearchPage() {
 
       setPhase({ step: "synthesizing" });
 
-      // Persist the report, then navigate to it
       const saved = await apiFetch<{ id: string }>("/api/research/save", {
         method: "POST",
         body: JSON.stringify({
@@ -52,147 +121,121 @@ export default function NewResearchPage() {
         }),
       });
 
+      toast("Report saved", "success");
       router.push(`/research/${saved.id}`);
     } catch (err) {
-      setPhase({ step: "error", message: err instanceof Error ? err.message : "Something went wrong" });
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setPhase({ step: "error", message: msg });
+      toast(msg, "error");
     }
   }
 
   const running = phase.step !== "idle" && phase.step !== "error";
 
   return (
-    <div
-      className="mx-auto flex w-full max-w-2xl flex-col px-8 py-12"
-      style={{ color: "var(--text)" }}
-    >
-      {/* Header */}
-      <div className="mb-10 text-center">
-        <div
-          className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl"
-          style={{ background: "var(--accent-weak)", color: "var(--accent)" }}
-        >
-          <Sparkles size={22} strokeWidth={1.5} />
-        </div>
-        <h1
-          className="text-3xl font-semibold"
-          style={{ color: "var(--text)", letterSpacing: "-0.018em" }}
-        >
-          Research anything
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-          Ask in plain English. The AI selects and runs the right tools, then synthesizes a sourced report.
-        </p>
-      </div>
+    <div style={{ position: "relative", minHeight: "100%", color: "var(--text)" }}>
+      {/* Grid background */}
+      <div className="grid-bg grid-bg-mask" style={{ position: "absolute", inset: 0, opacity: 0.35, pointerEvents: "none" }} />
 
-      {/* Query form */}
-      <form onSubmit={handleSubmit} className="reveal">
-        <div
-          className="overflow-hidden rounded-xl border transition-colors duration-150"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-        >
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            disabled={running}
-            placeholder="e.g. Give me an overview of NVIDIA: stock performance, major news, and key risks."
-            rows={4}
-            className="w-full resize-none bg-transparent px-5 pt-4 text-sm outline-none placeholder:opacity-50"
-            style={{ color: "var(--text)", lineHeight: "1.6" }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmit(e as unknown as React.FormEvent);
-            }}
-          />
-          <div
-            className="flex items-center justify-between px-4 py-3"
-            style={{ borderTop: "1px solid var(--border)" }}
-          >
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-              ⌘ + Enter to submit
-            </span>
-            <button
-              type="submit"
-              disabled={!query.trim() || running}
-              className="flex h-8 items-center gap-2 rounded-lg px-4 text-sm font-medium transition-opacity duration-150 disabled:opacity-40"
-              style={{ background: "var(--accent)", color: "var(--bg)" }}
-            >
-              {running ? (
-                <Loader2 size={13} strokeWidth={1.5} className="animate-spin" />
-              ) : (
-                <Search size={13} strokeWidth={1.5} />
-              )}
-              {running ? "Researching…" : "Research"}
-            </button>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 560, margin: "0 auto", padding: "48px 32px 32px" }}>
+        {/* Header */}
+        <div style={{ marginBottom: 36, textAlign: "center" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 52, height: 52, borderRadius: 16, background: "var(--accent-weak)", color: "var(--accent)", marginBottom: 16, boxShadow: "0 0 0 8px color-mix(in srgb, var(--accent) 6%, transparent)" }}>
+            <Sparkles size={22} strokeWidth={1.5} />
           </div>
-        </div>
-      </form>
-
-      {/* Phase indicator */}
-      {running && (
-        <div
-          className="mt-4 flex items-center gap-3 rounded-lg px-4 py-3 reveal"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-        >
-          <Loader2 size={14} strokeWidth={1.5} className="animate-spin shrink-0" style={{ color: "var(--accent)" }} />
-          <div>
-            <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
-              {phase.step === "planning"     && "Planning which tools to use…"}
-              {phase.step === "running"      && "Fetching market data, news, and filings…"}
-              {phase.step === "synthesizing" && "Synthesizing your report…"}
-            </p>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-              This usually takes 10–30 seconds
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Error state */}
-      {phase.step === "error" && (
-        <div
-          className="mt-4 rounded-lg px-4 py-3 reveal"
-          style={{ background: "color-mix(in srgb, var(--negative) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--negative) 30%, transparent)" }}
-        >
-          <p className="text-sm font-medium" style={{ color: "var(--negative)" }}>Research failed</p>
-          <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>{phase.message}</p>
-          <button
-            onClick={() => setPhase({ step: "idle" })}
-            className="mt-2 text-xs underline"
-            style={{ color: "var(--accent)" }}
-          >
-            Try again
-          </button>
-        </div>
-      )}
-
-      {/* Example prompts */}
-      {phase.step === "idle" && (
-        <div className="mt-8 stagger">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-            Example queries
+          <h1 className="gradient-heading" style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.022em", lineHeight: 1.2 }}>
+            Research anything
+          </h1>
+          <p style={{ marginTop: 8, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+            Ask in plain English. The AI selects the right tools, fetches live data,<br />and synthesizes a sourced report.
           </p>
-          {EXAMPLES.map((ex) => (
-            <button
-              key={ex}
-              onClick={() => setQuery(ex)}
-              className="mb-2 flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-colors duration-150"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)";
-                (e.currentTarget as HTMLButtonElement).style.background = "var(--surface-2)";
-                (e.currentTarget as HTMLButtonElement).style.color = "var(--text)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)";
-                (e.currentTarget as HTMLButtonElement).style.background = "var(--surface)";
-                (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)";
-              }}
-            >
-              <ArrowRight size={14} strokeWidth={1.5} className="mt-0.5 shrink-0" style={{ color: "var(--accent)" }} />
-              {ex}
-            </button>
-          ))}
         </div>
-      )}
+
+        {/* Query form */}
+        <form onSubmit={handleSubmit} className="reveal">
+          <div style={{ borderRadius: 14, border: "1px solid var(--border)", background: "var(--surface)", overflow: "hidden", boxShadow: "0 4px 24px rgba(16,18,22,.1)" }}>
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              disabled={running}
+              placeholder="e.g. Give me an overview of NVIDIA: stock performance, major news, and key risks."
+              rows={4}
+              style={{ width: "100%", padding: "18px 20px 12px", background: "transparent", resize: "none", outline: "none", fontSize: 14, color: "var(--text)", lineHeight: 1.65, fontFamily: "var(--font-sans)" }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmit(e as unknown as React.FormEvent);
+              }}
+            />
+
+            {/* Step progress — shown while running */}
+            {running && (
+              <div style={{ borderTop: "1px solid var(--border)" }}>
+                <StepProgress phase={phase} />
+              </div>
+            )}
+
+            {/* Toolbar */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px 14px", borderTop: running ? "none" : "1px solid var(--border)" }}>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+                ⌘+Enter to submit
+              </span>
+              <button
+                type="submit"
+                disabled={!query.trim() || running}
+                style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  height: 34, padding: "0 16px", borderRadius: 9,
+                  background: "var(--accent)", color: "var(--bg)",
+                  fontSize: 13, fontWeight: 600,
+                  opacity: (!query.trim() || running) ? 0.4 : 1,
+                  transition: "opacity 150ms",
+                  border: "none", cursor: running ? "not-allowed" : "pointer",
+                }}
+              >
+                <Sparkles size={13} strokeWidth={1.5} />
+                {running ? "Researching…" : "Research"}
+              </button>
+            </div>
+          </div>
+        </form>
+
+        {/* Error state */}
+        {phase.step === "error" && (
+          <div className="reveal" style={{ marginTop: 12, borderRadius: 10, padding: "12px 16px", background: "color-mix(in srgb, var(--negative) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--negative) 25%, transparent)" }}>
+            <p style={{ fontSize: 13, fontWeight: 500, color: "var(--negative)" }}>Research failed</p>
+            <p style={{ marginTop: 3, fontSize: 12, color: "var(--text-muted)" }}>{phase.message}</p>
+            <button onClick={() => setPhase({ step: "idle" })} style={{ marginTop: 6, fontSize: 12, color: "var(--accent)", textDecoration: "underline", background: "none", border: "none", cursor: "pointer" }}>
+              Try again
+            </button>
+          </div>
+        )}
+
+        {/* Example prompts */}
+        {phase.step === "idle" && (
+          <div style={{ marginTop: 32 }} className="stagger">
+            <p style={{ marginBottom: 10, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)" }}>
+              Example queries
+            </p>
+            {EXAMPLES.map((ex) => (
+              <button
+                key={ex}
+                onClick={() => setQuery(ex)}
+                className="example-prompt"
+                style={{ display: "flex", width: "100%", alignItems: "flex-start", gap: 12, borderRadius: 10, padding: "11px 14px", marginBottom: 8, textAlign: "left", border: "none", cursor: "pointer" }}
+              >
+                <ArrowRight size={13} strokeWidth={1.5} style={{ color: "var(--accent)", marginTop: 1, flexShrink: 0 }} />
+                <span style={{ fontSize: 13, lineHeight: 1.5 }}>{ex}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Keyboard hint */}
+        {phase.step === "idle" && (
+          <p style={{ marginTop: 24, textAlign: "center", fontSize: 11, color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+            Pro tip: press <kbd style={{ padding: "1px 5px", borderRadius: 4, border: "1px solid var(--border)", background: "var(--surface-2)" }}>⌘K</kbd> from anywhere to jump to any page
+          </p>
+        )}
+      </div>
     </div>
   );
 }

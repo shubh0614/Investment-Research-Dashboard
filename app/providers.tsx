@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -25,7 +26,12 @@ function getQueryClient() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const qc = getQueryClient();
-  return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={qc}>
+      {children}
+      <Toaster />
+    </QueryClientProvider>
+  );
 }
 
 /** Reads system preference once and applies the .light class on <html>. */
