@@ -1,5 +1,5 @@
 /**
- * Phase 2 idempotent seed script.
+ * Phase 2 + 3 idempotent seed script.
  *
  * Creates two orgs with distinct, recognizable data so cross-tenant isolation
  * is visually obvious in the UI demo. Safe to run multiple times — cleans up
@@ -14,6 +14,8 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { embedMany } from "ai";
+import { openai } from "@ai-sdk/openai";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -286,7 +288,8 @@ const kbDocs = [
   { company: "MULTI",  doc_type: "landscape",        title: "Semiconductor AI Competitive Landscape",       source_label: "Research Synthesis", file: "semiconductor-landscape.md"   },
 ];
 
-// Insert documents for both orgs (each org has its own tenant-isolated copy).
+// Insert documents for both orgs, capturing IDs for the embedding step.
+const orgDocIds = {};
 for (const org of [orgAlpha, orgBeta]) {
   const rows = kbDocs.map(({ company, doc_type, title, source_label }) => ({
     org_id: org.id,
@@ -295,13 +298,88 @@ for (const org of [orgAlpha, orgBeta]) {
     title,
     source_label,
   }));
-  const { error: ed } = await service.from("documents").insert(rows);
+  const { data: insertedDocs, error: ed } = await service
+    .from("documents")
+    .insert(rows)
+    .select("id, title");
   ok(`Documents for ${org === orgAlpha ? "Alpha Capital" : "Beta Ventures"} (4)`, ed);
+  // Build map: title → id for this org's documents
+  orgDocIds[org.id] = Object.fromEntries((insertedDocs ?? []).map((d) => [d.title, d.id]));
+}
+
+// ── Phase 6b: Chunk + embed KB documents (Phase 3.4) ─────────────────────────
+
+console.log("\n6b. Chunking and embedding knowledge-base documents...");
+
+function chunkText(text, maxChars = 2000, overlapChars = 200) {
+  const paras = text.split(/\n\n+/).filter(Boolean);
+  const chunks = [];
+  let current = "";
+  let overlap = "";
+
+  for (const para of paras) {
+    if (current.length + para.length + 2 > maxChars && current.length > 0) {
+      chunks.push(overlap + current);
+      overlap = current.slice(-overlapChars);
+      current = para;
+    } else {
+      current = current ? current + "\n\n" + para : para;
+    }
+  }
+  if (current) chunks.push(overlap + current);
+  return chunks;
+}
+
+const apiKey = process.env.OPENAI_API_KEY ?? process.env.LLM_API_KEY ?? "";
+const embeddingEnabled = apiKey.length > 0;
+
+if (!embeddingEnabled) {
+  console.log("  ⚠ OPENAI_API_KEY not set — storing chunks without embeddings (keyword fallback mode).");
+}
+
+// Clear any existing chunks so re-runs are idempotent.
+await service.from("document_chunks").delete().not("id", "is", null);
+console.log("  cleared existing chunks.");
+
+for (const org of [orgAlpha, orgBeta]) {
+  const docIdMap = orgDocIds[org.id];
+  const orgLabel = org === orgAlpha ? "Alpha Capital" : "Beta Ventures";
+
+  for (const { title, file } of kbDocs) {
+    const docId = docIdMap[title];
+    if (!docId) { console.error(`  ✗ No doc ID for "${title}" in ${orgLabel}`); continue; }
+
+    const content = readKb(file);
+    const chunks  = chunkText(content);
+
+    let embeddings = chunks.map(() => null);
+    if (embeddingEnabled) {
+      try {
+        const model = openai.embedding("text-embedding-3-small");
+        const result = await embedMany({ model, values: chunks });
+        embeddings = result.embeddings;
+      } catch (e) {
+        console.warn(`  ⚠ Embedding failed for "${title}": ${e.message} — storing null vectors.`);
+      }
+    }
+
+    const rows = chunks.map((content, i) => ({
+      org_id:      org.id,
+      document_id: docId,
+      chunk_index: i,
+      content,
+      embedding:   embeddings[i] ? JSON.stringify(embeddings[i]) : null,
+      token_count: Math.ceil(content.length / 4), // rough estimate: 1 token ≈ 4 chars
+    }));
+
+    const { error: ech } = await service.from("document_chunks").insert(rows);
+    ok(`${orgLabel} / "${title}" (${chunks.length} chunks${embeddingEnabled ? ", embedded" : ", no embeddings"})`, ech);
+  }
 }
 
 // ── Phase 7: Pre-warm query_cache ─────────────────────────────────────────────
 
-console.log("\n7. Pre-warming query cache with demo market data...");
+console.log("\n7. Pre-warming query cache with demo market data (Phase 2.2 + D8)...");
 
 // Synthetic price series — deterministic data shaped like the real API response.
 // Phase 3 tool clients will refresh these from real APIs (or serve from cache).

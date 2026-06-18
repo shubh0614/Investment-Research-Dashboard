@@ -14,9 +14,11 @@
     "seed": "node scripts/seed.mjs"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.73",
     "@base-ui/react": "^1.5.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
+    "ai": "^6.0.208",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.20.0",

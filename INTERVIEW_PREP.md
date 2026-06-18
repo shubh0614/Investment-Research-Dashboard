@@ -118,6 +118,21 @@ I designed the full system in the constitution, then tiered implementation by ru
 **Interview line:** "The cache is data-model-level plumbing. Seeding it now means the demo is independent of live API availability from day one, which is D8 from the Decision Ledger: never make the demo depend on a rate-limited upstream."
 **Likely follow-up:** "What's the cache key format?" — `market:{TICKER}:{range}` and `news:{COMPANY}:{days}`. Phase 3 tool clients will use the same keys, so the pre-seeded entries will be served from cache on the first call without any configuration.
 
+### Phase 3 decision: KB retriever has a vector-primary, keyword-fallback design
+**What happened:** The `searchKnowledgeBase()` function calls `embedQuery()` first. If a vector is returned, it issues a PostgREST ORDER BY cosine distance query. If `embedQuery()` returns null (no API key), it falls back to a GIN-indexed `plainto_tsquery` full-text search on the content column.
+**Interview line:** "The retriever works whether or not an OpenAI key is present. The happy path is vector similarity, which is tenant-scoped by RLS and ordered by cosine distance. The fallback is GIN full-text search, which is also tenant-scoped and index-backed. The demo never hard-fails on a missing embedding key."
+**Likely follow-up:** "Why plainto_tsquery and not to_tsquery?" — `to_tsquery` requires the caller to pass a valid ts_query expression with explicit `&` / `|` operators. `plainto_tsquery` accepts natural prose and is the right choice when the input is an unformatted user query.
+
+### Phase 3 decision: GIN full-text index added alongside HNSW
+**What happened:** Added `CREATE INDEX ... USING gin(to_tsvector('english', content))` in the same migration as the HNSW index. The Supabase JS `.textSearch()` call with `{ type: 'plain' }` maps to `plainto_tsquery`, which the GIN index backs.
+**Interview line:** "I index both retrieval paths: HNSW for vectors and GIN for full-text. Without the GIN index, keyword search is a sequential scan of the content column. With it, keyword search is milliseconds regardless of KB size."
+**Likely follow-up:** "Why not just use ILIKE?" — ILIKE is a regex-style character match, not semantic text search. It doesn't handle stemming (`earn` doesn't match `earnings`), stop words, or relevance ranking. `to_tsvector` + `plainto_tsquery` does all three.
+
+### Phase 3 implementation: embedding is null-safe throughout
+**What happened:** `embedTexts()` returns `null[]` if `OPENAI_API_KEY` is unset. `seed.mjs` stores those nulls in `document_chunks.embedding`. `embedQuery()` returns `null` if unconfigured. `searchKnowledgeBase()` detects null and switches to keyword path. No code in the system crashes on a missing key.
+**Interview line:** "Embedding is optional infrastructure, not a hard dependency. Setting `OPENAI_API_KEY` improves retrieval quality but the app ships without it. That is the correct graduation of complexity for an MVP where the grader may not have an OpenAI key at evaluation time."
+**Likely follow-up:** "Can you add embeddings to existing chunks retroactively?" — Yes. Re-run `npm run seed` with `OPENAI_API_KEY` set. The seed clears chunks at the start, re-chunks every document, calls `embedMany`, and inserts with real vectors. The HNSW index is then live and vector search activates automatically.
+
 ### Phase 1 decision: onboarding uses service-role client, all other tenant queries use session client
 **What happened:** Creating an org and profile requires bypassing RLS (the user has no profile yet, so `current_org_id()` returns null, which means no RLS policy passes). Only onboarding uses the service-role client. Every subsequent query uses the session-bound client so RLS is always enforced.
 **Interview line:** "The service-role client is a loaded gun — it bypasses RLS completely. I confined it to exactly one place: the onboarding transaction that creates the org and the first profile. Everything after that uses the session client, which means if there is ever a bug in my service layer, RLS is still enforced."
