@@ -11,7 +11,8 @@
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
-    "seed": "node scripts/seed.mjs"
+    "seed": "node scripts/seed.mjs",
+    "test:isolation": "node scripts/test-isolation.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.73",

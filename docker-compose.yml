@@ -1,0 +1,34 @@
+##
+## Klypup — Docker Compose
+##
+## IMPORTANT: Supabase manages its own Docker containers via the Supabase CLI.
+## Before running `docker compose up`, you must first start Supabase separately:
+##
+##   npx supabase start      # starts Postgres, Auth, PostgREST, Studio
+##   npm run seed            # seeds two orgs and the knowledge base
+##
+## Then run the app container:
+##   docker compose up --build
+##
+## For a fully cloud-hosted deployment, point NEXT_PUBLIC_SUPABASE_URL and the
+## key vars at a hosted Supabase project — no local Supabase setup needed.
+##
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
