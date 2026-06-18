@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BarChart3, Building2, Users } from "lucide-react";
 
 type Mode = "choose" | "create" | "join";
 
@@ -24,11 +25,7 @@ export default function OnboardingPage() {
         ? { mode: "create", org_name: orgName, full_name: fullName || undefined }
         : { mode: "join",   invite_code: inviteCode, full_name: fullName || undefined };
 
-    const res  = await fetch("/api/onboarding", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify(body),
-    });
+    const res  = await fetch("/api/onboarding", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const json = await res.json();
 
     if (!json.ok) {
@@ -42,89 +39,87 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50">
-      <div className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-1 text-2xl font-semibold tracking-tight text-zinc-900">Set up your workspace</h1>
-        <p className="mb-6 text-sm text-zinc-500">Create a new organization or join an existing one.</p>
+    <div className="flex min-h-screen items-center justify-center p-4" style={{ background: "var(--bg)" }}>
+      <div className="w-full max-w-sm reveal">
+        <div className="mb-8 flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: "var(--accent-weak)", color: "var(--accent)" }}>
+            <BarChart3 size={16} strokeWidth={1.5} />
+          </div>
+          <span className="text-base font-semibold" style={{ color: "var(--text)" }}>Klypup</span>
+        </div>
+
+        <h1 className="mb-1 text-2xl font-semibold tracking-tight" style={{ color: "var(--text)", letterSpacing: "-0.018em" }}>
+          Set up your workspace
+        </h1>
+        <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
+          Create a new organization or join an existing one.
+        </p>
 
         {mode === "choose" && (
           <div className="flex flex-col gap-3">
-            <button
-              onClick={() => setMode("create")}
-              className="rounded-lg border border-zinc-200 px-4 py-3 text-left text-sm hover:border-zinc-400 hover:bg-zinc-50"
-            >
-              <span className="block font-medium text-zinc-900">Create a new organization</span>
-              <span className="text-zinc-500">You&apos;ll become the admin.</span>
-            </button>
-            <button
-              onClick={() => setMode("join")}
-              className="rounded-lg border border-zinc-200 px-4 py-3 text-left text-sm hover:border-zinc-400 hover:bg-zinc-50"
-            >
-              <span className="block font-medium text-zinc-900">Join with an invite code</span>
-              <span className="text-zinc-500">Join an existing organization as an analyst.</span>
-            </button>
+            {[
+              { m: "create" as Mode, icon: Building2, title: "Create a new organization", sub: "You'll become the admin." },
+              { m: "join"   as Mode, icon: Users,     title: "Join with an invite code",  sub: "Join as an analyst." },
+            ].map(({ m, icon: Icon, title, sub }) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className="rounded-lg border px-4 py-3 text-left transition-colors duration-150"
+                style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--accent)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)"; }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Icon size={15} strokeWidth={1.5} style={{ color: "var(--accent)" }} />
+                  <span className="text-sm font-medium">{title}</span>
+                </div>
+                <p className="mt-0.5 pl-6 text-xs" style={{ color: "var(--text-muted)" }}>{sub}</p>
+              </button>
+            ))}
           </div>
         )}
 
         {mode !== "choose" && (
           <form onSubmit={submit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-zinc-700" htmlFor="fullName">Your name (optional)</label>
-              <input
-                id="fullName"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Jane Smith"
-                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500"
-              />
-            </div>
-
-            {mode === "create" ? (
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-zinc-700" htmlFor="orgName">Organization name</label>
+            {[
+              { id: "fullName",   label: "Your name (optional)", value: fullName,    setter: setFullName,   type: "text",     placeholder: "Jane Smith",    mono: false },
+              ...(mode === "create"
+                ? [{ id: "orgName",  label: "Organization name",    value: orgName,    setter: setOrgName,    type: "text",     placeholder: "Acme Capital",  mono: false, required: true }]
+                : [{ id: "invCode",  label: "Invite code",          value: inviteCode, setter: setCode,       type: "text",     placeholder: "e.g. a1b2c3d", mono: true,  required: true }]),
+            ].map(({ id, label, value, setter, type, placeholder, mono, required }) => (
+              <div key={id} className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium" style={{ color: "var(--text-muted)" }} htmlFor={id}>{label}</label>
                 <input
-                  id="orgName"
-                  type="text"
-                  required
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  placeholder="Acme Capital"
-                  className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500"
+                  id={id} type={type} required={!!required} value={value}
+                  onChange={(e) => setter(e.target.value)} placeholder={placeholder}
+                  className="h-9 rounded-lg border px-3 text-sm outline-none transition-colors duration-150"
+                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontFamily: mono ? "var(--font-mono)" : undefined }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+                  onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--border)"; }}
                 />
               </div>
-            ) : (
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-zinc-700" htmlFor="inviteCode">Invite code</label>
-                <input
-                  id="inviteCode"
-                  type="text"
-                  required
-                  value={inviteCode}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="e.g. a1b2c3"
-                  className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500"
-                />
-              </div>
-            )}
+            ))}
 
             {error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+              <p className="rounded-lg px-3 py-2 text-sm"
+                 style={{ background: "color-mix(in srgb, var(--negative) 12%, transparent)", color: "var(--negative)" }}>
+                {error}
+              </p>
             )}
 
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => { setMode("choose"); setError(null); }}
-                className="flex-1 rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-              >
+              <button type="button" onClick={() => { setMode("choose"); setError(null); }}
+                className="flex-1 h-9 rounded-lg border text-sm font-medium transition-colors duration-150"
+                style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text-muted)" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--text-muted)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)"; }}>
                 Back
               </button>
-              <button
-                type="submit"
-                disabled={pending}
-                className="flex-1 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50"
-              >
+              <button type="submit" disabled={pending}
+                className="flex-1 h-9 rounded-lg text-sm font-medium transition-opacity duration-150 disabled:opacity-50"
+                style={{ background: "var(--accent)", color: "var(--bg)" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.9"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}>
                 {pending ? "Setting up…" : mode === "create" ? "Create org" : "Join org"}
               </button>
             </div>
