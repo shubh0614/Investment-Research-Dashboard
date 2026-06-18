@@ -163,3 +163,28 @@ I designed the full system in the constitution, then tiered implementation by ru
 **What happened:** Creating an org and profile requires bypassing RLS (the user has no profile yet, so `current_org_id()` returns null, which means no RLS policy passes). Only onboarding uses the service-role client. Every subsequent query uses the session-bound client so RLS is always enforced.
 **Interview line:** "The service-role client is a loaded gun — it bypasses RLS completely. I confined it to exactly one place: the onboarding transaction that creates the org and the first profile. Everything after that uses the session client, which means if there is ever a bug in my service layer, RLS is still enforced."
 **Likely follow-up:** "What if the org is created but the profile insert fails?" — Best-effort rollback: the service deletes the dangling org. This is not ACID-perfect (the delete could also fail) but is the correct pragmatic choice in a single-connection service layer without explicit transactions.
+
+### Phase 5 decision: run and save are separate round-trips
+**What happened:** `POST /api/research` runs the orchestrator and returns the report JSON without touching the DB. `POST /api/research/save` persists it. The client must explicitly decide to save after reviewing the result.
+**Interview line:** "Separation of concern in two directions: the read path stays stateless (useful for future caching/CDN), and the user gets to inspect the result before committing storage cost and audit trail. One route that does both is simpler to write but harder to test, harder to reason about, and couples LLM latency to DB writes."
+**Likely follow-up:** "What prevents the client from modifying result_json before saving?" — We store it exactly as-sent. The model already validated the shape at AI layer (Zod parse + repair loop). A determined attacker can obviously send garbage, but the read path (`GET /api/research/:id`) just returns what was stored — there is no downstream system that trusts result_json as authoritative for anything security-sensitive.
+
+### Phase 5 decision: cross-tenant reads return 404, not 403
+**What happened:** `GET /api/research/:id` re-checks `org_id` in the query (`.eq("org_id", orgId)`). If a user from Org B guesses Org A's report UUID, they get 404.
+**Interview line:** "403 confirms the resource exists but you don't have access. 404 is information-free — the attacker learns nothing. IDOR (insecure direct object reference) is OWASP A01. The defence-in-depth here is RLS enforcing the same rule plus the service layer adding an explicit `org_id` filter on every query. Two independent enforcement points."
+**Likely follow-up:** "Doesn't RLS alone handle this?" — Yes, RLS would return 0 rows. But the service re-check means that if someone accidentally runs the query with the service-role client (bypassing RLS), it still can't leak cross-tenant data.
+
+### Phase 5 decision: audit events are best-effort (fire-and-forget)
+**What happened:** `writeAuditEvent()` is called with `void` — the route never awaits it and never checks its result. The function catches all errors internally and logs them.
+**Interview line:** "Audit logging must never fail a business operation. If the audit write times out, the user's report should still save successfully. Best-effort here is the correct semantics: logs are observability, not transactions. The only risk is a gap in the audit trail, which is acceptable for an MVP. In production you'd queue audit events through a reliable message bus."
+**Likely follow-up:** "What if you need audit events for compliance?" — Then they're not best-effort. You promote them to a Postgres-level trigger inside the same transaction as the mutation, or you use a CDC pipeline. The decision is a product requirement, not a code preference.
+
+### Phase 5 decision: tags use replace-all on update, not delta
+**What happened:** `updateReport()` with `tags: [...]` deletes all existing `report_tags` rows for the report, then bulk-inserts the new set. There is no partial update.
+**Interview line:** "Replace-all is idempotent and simple to reason about. Delta updates (add X, remove Y) require the client to track the previous state and compute a diff. For a tag set that rarely exceeds 10 items, the extra delete+insert is negligible and the code is trivially correct. Delta makes sense for large ordered collections; it's premature optimisation here."
+**Likely follow-up:** "What if two users update tags simultaneously?" — Last-write-wins at the row level. Tags are not ordered or versioned in the MVP. If concurrent tag editing becomes a use case, optimistic locking via a `tags_version` column would be the correct upgrade.
+
+### Phase 5 decision: requireAuth / requireAdmin shared helper
+**What happened:** Every route calls `requireAuth()` or `requireAdmin()` at its top — one function that extracts the Bearer token, validates it with Supabase, fetches the profile, and returns a typed `AuthContext`. The route only proceeds if `auth.ok`.
+**Interview line:** "Centralising auth into one function eliminates copy-paste errors. If I inline the same three Supabase calls in 10 routes, someone will eventually omit the role check or forget to handle the null-profile case. The type system enforces that any route that calls requireAuth can only reach its business logic with a fully-validated `AuthContext`."
+**Likely follow-up:** "Why not middleware for this?" — Middleware (proxy.ts) runs on every request and is the right place for rate-limiting and public-route gating. It does not have the Supabase session context needed to check roles. The per-route helper pattern keeps auth logic close to the handler that needs it and avoids a shared mutable context object.
