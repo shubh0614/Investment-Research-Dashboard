@@ -43,7 +43,8 @@ function buildContext(results: ExecutionResults): string {
           `  P/E ratio: ${d.pe_ratio ?? "N/A"}\n` +
           `  Forward P/E: ${d.forward_pe ?? "N/A"}\n` +
           `  Revenue (TTM): ${d.revenue_ttm ?? "N/A"}\n` +
-          `  Price series (last ${d.series.length} days): ${JSON.stringify(d.series.slice(-10))}`,
+          `  Price series (last ${d.series.length} days — for price_series field use only date+close):\n` +
+          d.series.slice(-10).map((p) => `    { "date": "${p.date}", "close": ${p.close} }`).join("\n"),
         );
       }
     }
@@ -103,8 +104,10 @@ STRICT RULES:
 2. SENTIMENT CLASSIFICATION: For every news item, classify it as "positive", "negative", or "neutral"
    based on its content and assign a confidence (0.0–1.0).
 3. FACTUAL ACCURACY: Use only the data provided in the tool outputs. Do not add metrics or prices not present.
-4. OPTIONAL FIELDS: Only include comparison[] if multiple companies are present with comparable metrics.
-   Only include price_series[] if market data with a series was returned.
+4. CONDITIONAL FIELDS:
+   - price_series[] MUST be populated whenever "Price series" data appears in the tool outputs above.
+     Extract every data point as { "date": "YYYY-MM-DD", "close": <number> }. Do NOT omit this field when series data is present.
+   - comparison[] SHOULD only be included when two or more companies have comparable metrics in the data.
 5. RISKS: Extract at minimum 2 risks from the data. Each risk must cite at least one source.
 6. tools_used must list exactly the tools that provided data (not necessarily all tools called).`;
 

@@ -6,13 +6,15 @@
  * - Structured token-usage logging on every call
  * - Throws LLMError on timeout / provider error so callers handle one type
  *
- * The gateway owns these cross-cutting concerns so neither the orchestrator
- * nor the synthesizer needs to think about them.
+ * Groq compatibility note: Groq's OpenAI-compatible API supports json_object mode
+ * but not the newer json_schema (structured outputs) format. AI SDK v6 uses
+ * json_schema when a schema is passed to generateObject. We work around this by
+ * using output:"no-schema" (→ json_object) and validating the result ourselves.
  */
 
 import { generateObject, generateText } from "ai";
-import type { LanguageModel, LanguageModelUsage, ModelMessage, ToolSet } from "ai";
-import type { z } from "zod";
+import type { LanguageModel, LanguageModelUsage, ModelMessage, SystemModelMessage, ToolSet } from "ai";
+import { z } from "zod";
 import { createModel } from "./providers";
 
 export { createModel };
@@ -44,6 +46,19 @@ function makeAbortSignal(ms = TIMEOUT_MS): { signal: AbortSignal; clear: () => v
   return { signal: controller.signal, clear: () => clearTimeout(timer) };
 }
 
+/** Split system messages out of a ModelMessage array — AI SDK v6 takes system separately. */
+function splitMessages(messages: ModelMessage[]): {
+  system:   string | undefined;
+  rest:     ModelMessage[];
+} {
+  const sysMsgs = messages.filter((m): m is SystemModelMessage => m.role === "system");
+  const rest    = messages.filter((m) => m.role !== "system");
+  const system  = sysMsgs.length > 0
+    ? sysMsgs.map((m) => m.content as string).join("\n\n")
+    : undefined;
+  return { system, rest };
+}
+
 export interface StructuredResult<T> {
   data:       T;
   usage:      LanguageModelUsage;
@@ -53,64 +68,80 @@ export interface StructuredResult<T> {
 
 /**
  * Generate a schema-valid object from the model.
- * Validates against the Zod schema; on structural failure, makes one repair pass.
+ *
+ * Uses output:"no-schema" (json_object mode) so Groq-compatible endpoints work.
+ * The JSON schema is appended to the system prompt and Zod validates the response.
+ * On structural failure one repair pass is attempted; throws LLMError on second failure.
  */
 export async function generateStructuredOutput<T>(
   schema:   z.ZodType<T>,
   messages: ModelMessage[],
-  options?: { maxRetries?: number; timeoutMs?: number },
+  options?: { timeoutMs?: number },
 ): Promise<StructuredResult<T>> {
+  const { system: sysBase, rest } = splitMessages(messages);
+
+  // Include JSON schema in the system prompt so the model knows the exact shape.
+  const jsonSchemaStr = JSON.stringify(z.toJSONSchema(schema), null, 2);
+  const system = [
+    sysBase,
+    `Respond with a JSON object that EXACTLY matches this schema:\n\`\`\`json\n${jsonSchemaStr}\n\`\`\``,
+  ].filter(Boolean).join("\n\n");
+
   const { signal, clear } = makeAbortSignal(options?.timeoutMs ?? TIMEOUT_MS);
   const start = Date.now();
 
-  try {
-    const result = await generateObject({
+  const attempt = async (
+    extraMessages: ModelMessage[],
+    sig: AbortSignal,
+  ): Promise<{ object: unknown; usage: LanguageModelUsage }> => {
+    // output:"no-schema" → AI SDK sends json_object (not json_schema) to provider.
+    // Groq supports json_object; json_schema (structured outputs) is OpenAI-only.
+    const r = await generateObject({
       model:       getModel(),
-      schema,
-      messages,
-      maxRetries:  0, // we own the repair loop
-      abortSignal: signal,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      output:      "no-schema" as any,
+      system,
+      messages:    [...rest, ...extraMessages] as ModelMessage[],
+      maxRetries:  0,
+      abortSignal: sig,
     });
+    return { object: r.object, usage: r.usage };
+  };
+
+  try {
+    const { object, usage } = await attempt([], signal);
+
+    const parsed = schema.safeParse(object);
+    if (!parsed.success) {
+      throw new Error(`Schema validation failed: ${parsed.error.message}`);
+    }
 
     const durationMs = Date.now() - start;
-    console.log(
-      `[llm] generateObject ok — ${durationMs}ms, tokens=${result.usage.totalTokens ?? 0}`,
-    );
-
-    return { data: result.object as T, usage: result.usage, durationMs, wasRepaired: false };
+    console.log(`[llm] generateObject ok — ${durationMs}ms, tokens=${usage.totalTokens ?? 0}`);
+    return { data: parsed.data, usage, durationMs, wasRepaired: false };
 
   } catch (firstErr) {
     clear();
 
-    // One repair pass — give the model the error message as context.
     const { signal: signal2, clear: clear2 } = makeAbortSignal(options?.timeoutMs ?? TIMEOUT_MS);
     try {
       const errMsg = firstErr instanceof Error ? firstErr.message : String(firstErr);
       console.warn(`[llm] generateObject first attempt failed (${errMsg}) — attempting repair`);
 
-      const repaired = await generateObject({
-        model:       getModel(),
-        schema,
-        messages: [
-          ...messages,
-          {
-            role:    "assistant" as const,
-            content: `My previous response failed schema validation: ${errMsg}`,
-          },
-          {
-            role:    "user" as const,
-            content: "Please produce a corrected JSON response that fully satisfies the schema. Pay special attention to required fields and non-empty arrays.",
-          },
-        ],
-        maxRetries:  0,
-        abortSignal: signal2,
-      });
+      const repairMessages: ModelMessage[] = [
+        { role: "assistant", content: `My previous attempt failed: ${errMsg}` },
+        { role: "user",      content: "Produce a corrected JSON response that fully satisfies the schema. Focus on required fields and non-empty arrays." },
+      ];
+      const { object, usage } = await attempt(repairMessages, signal2);
+
+      const parsed = schema.safeParse(object);
+      if (!parsed.success) {
+        throw new Error(`Schema validation failed after repair: ${parsed.error.message}`);
+      }
 
       const durationMs = Date.now() - start;
-      console.log(
-        `[llm] generateObject repaired — ${durationMs}ms, tokens=${repaired.usage.totalTokens ?? 0}`,
-      );
-      return { data: repaired.object as T, usage: repaired.usage, durationMs, wasRepaired: true };
+      console.log(`[llm] generateObject repaired — ${durationMs}ms, tokens=${usage.totalTokens ?? 0}`);
+      return { data: parsed.data, usage, durationMs, wasRepaired: true };
 
     } catch (repairErr) {
       throw new LLMError(
@@ -147,13 +178,15 @@ export async function generateWithTools(
   tools:    ToolSet,
   options?: { timeoutMs?: number },
 ): Promise<TextWithToolsResult> {
+  const { system, rest } = splitMessages(messages);
   const { signal, clear } = makeAbortSignal(options?.timeoutMs ?? TIMEOUT_MS);
   const start = Date.now();
 
   try {
     const result = await generateText({
       model:       getModel(),
-      messages,
+      system,
+      messages:    rest as ModelMessage[],
       tools,
       toolChoice:  "auto",
       abortSignal: signal,
