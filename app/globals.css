@@ -31,9 +31,9 @@
   --color-pos:          var(--pos);
   --color-neg:          var(--neg);
 
-  --font-serif: var(--font-serif);
-  --font-sans:  var(--font-sans);
-  --font-mono:  var(--font-mono);
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-sans:  var(--font-hanken), system-ui, -apple-system, sans-serif;
+  --font-mono:  var(--font-ibm-plex), ui-monospace, "SF Mono", monospace;
 
   --radius-sm: 4px;
   --radius:    6px;
@@ -75,10 +75,7 @@
   --pos:          #57A773;
   --neg:          #C8645A;
   --ring:         #E0A040;
-  --ease-out:     cubic-bezier(.2,.7,.2,1);
-  --font-serif:   var(--font-serif-var, "Newsreader"), Georgia, serif;
-  --font-sans:    var(--font-sans-var, "Hanken Grotesk"), system-ui, -apple-system, sans-serif;
-  --font-mono:    var(--font-mono-var, "IBM Plex Mono"), ui-monospace, "SF Mono", monospace;
+  --ease-out: cubic-bezier(.2,.7,.2,1);
 }
 
 .dark {

@@ -1,5 +1,5 @@
 # THE KLYPUP CONSTITUTION
-### Build Constitution for the Investment Research Dashboard (Option A) — v1.1
+### Build Constitution for the Investment Research Dashboard (Option A) — v1.2
 
 > A full-stack web application that turns a research analyst's natural-language question into an AI-orchestrated, source-attributed, structured analysis in minutes. The AI is a feature inside a real multi-tenant product, not the product itself.
 
@@ -21,7 +21,7 @@
 - **Part 5** — The Data Model (schema, RLS policies, indexes)
 - **Part 6** — The AI Layer (gateway, agentic loop, tools, structured output)
 - **Part 7** — API Design (endpoint contracts, response envelope, error taxonomy)
-- **Part 8** — Frontend Specification (routes, components, rendering contract, design)
+- **Part 8** — Frontend Specification (routes, components, rendering contract, and the locked Design System)
 - **Part 9** — Multi-Tenancy and Security (isolation model, RBAC matrix, auth)
 - **Part 9.5** — Implementation Tiering (MoSCoW: what the constitution designs vs what the MVP builds)
 - **Part 10** — The Build Roadmap (step-wise, with definition-of-done and machine test)
@@ -184,6 +184,11 @@ This is the heart of the project for interview purposes. Each entry states the d
 **Why on merit.** It gives us correct loading/error/empty handling and cache invalidation almost for free, which is directly what the rubric inspects, rather than hand-rolling fetch state.
 **Alternatives rejected.** Raw fetch in effects (boilerplate and bug-prone), a global store like Redux (unnecessary for server state). Rejected.
 
+### D12 — Design system: a calm, tokenized "research terminal" aesthetic
+**Decision.** A single locked design system (Part 8.5): dark by default with a light mode, a near-neutral desaturated palette that never uses pure black or pure white, one restrained indigo accent, muted semantic colors, Geist Sans paired with Geist Mono using tabular numerals for all data, an 8px spacing grid, hairline elevation, restrained motion, and a WCAG AA accessibility floor. The signature is provenance-first: every datum wears a quiet monospace source chip.
+**Why on merit.** Analysts read this product for long stretches, so low eye-strain is a functional requirement, not decoration. Desaturated neutrals, AA contrast, and comfortable line-height measurably reduce fatigue, which is what "soothing" means in engineering terms. A fully tokenized system makes the UI consistent and fast to build and is the line between an intern project and a product. Tabular numerals are a real correctness detail in finance, since columns of figures must align. Provenance-first ties the look directly to the product's core promise, that every claim is sourced.
+**Alternatives rejected.** Stock unthemed shadcn defaults (reads templated). The common high-contrast pure-black-plus-neon dashboard look (harsh over long sessions and a generic default, not a choice). Multiple accent hues and chart decoration (noise that lowers perceived trust). Rejected.
+
 ---
 
 ## PART 4 — SYSTEM ARCHITECTURE
@@ -319,6 +324,60 @@ Every async surface renders loading, error, and empty states. Empty states are d
 - shadcn/ui plus Tailwind for accessible, composable primitives we control, over a heavy component library we would have to fight.
 - TanStack Query for all server state (D11). Mutations invalidate the relevant queries so the UI is always consistent after save, delete, or role change.
 
+### 8.5 Design System (LOCKED — the visual standard)
+
+This is the visual law. Every screen obeys it. The bar is not "a clean intern dashboard," it is a product that would not look out of place next to Linear, Stripe, Vercel, or Mercury: calm, precise, generous, and unmistakably considered. Nothing below is optional, and no component invents its own colors, spacing, or radii. Everything comes from a token.
+
+**Design thesis.** The product is a research terminal for analysts who live in it for hours. Its single job is to let a person read a dense, fully sourced report without strain. So the aesthetic is quiet and information-dense, not loud: it gets out of the way of the data. The personality lives in restraint and in one signature.
+
+**The signature (spend boldness here only).** Provenance-first. Every datum wears a small monospace source chip, and the report reads like a sourced intelligence brief where nothing is unattributed. This is the one memorable element; everything around it stays disciplined and quiet.
+
+#### 8.5.1 Typography
+- **UI, body, and display:** Geist Sans (fallback Inter, system-ui, sans-serif). One neutral, modern grotesque carries headings and body, differentiated by size, weight, and tracking rather than a second family, for cohesion.
+- **Data, numerals, tickers, source chips:** Geist Mono (fallback ui-monospace, "JetBrains Mono", monospace), always with `font-variant-numeric: tabular-nums` so columns of figures align. This is non-negotiable for every price, percentage, and metric.
+- **Type scale** (size / line-height / tracking / weight): Display 38/44 / -0.02em / 600. H1 30/38 / -0.018em / 600. H2 24/32 / -0.012em / 600. H3 20/28 / -0.008em / 600. Body-lg 16/26 / 0 / 450. Body 14/22 / 0 / 450. Caption 13/18 / 0 / 450 (muted). Micro-label 12/16 / +0.06em / 500, sentence case (uppercase only for true eyebrows).
+- **Reading comfort:** body line-height never below 1.5; prose columns capped near 70 characters. No long centered paragraphs.
+
+#### 8.5.2 Color (never pure black, never pure white)
+Tokens are CSS variables; dark is the default theme, light ("Daylight") is a first-class mode. Soothing means desaturated and AA-legible, not dim.
+
+Dark ("Ink", default): `--bg #0E1116`, `--surface #161A22`, `--surface-2 #1C2230`, `--border #262C39`, `--text #E7E9EF`, `--text-muted #99A1B0`, `--accent #7C89FF`, `--accent-weak #1A2030`.
+Light ("Daylight"): `--bg #F7F8FA`, `--surface #FFFFFF`, `--surface-2 #F1F3F6`, `--border #E5E8EC`, `--text #1A1D24`, `--text-muted #5C636E`, `--accent #4F5BD5`, `--accent-weak #ECEEFB`.
+Semantic, muted in both modes (dark / light): positive `#45C08A` / `#1E9E6B`, negative `#E06A82` / `#D14D67`, neutral = `--text-muted`. Sentiment badges are semantic-colored text on a low-alpha tint of the same hue, never a solid neon fill.
+**Usage rule:** exactly one accent hue across the whole app. The accent is for primary actions, active states, links, and the chart line, nothing else.
+
+#### 8.5.3 Space, grid, radius, density
+- 4px base, 8px rhythm. Spacing scale: 4, 8, 12, 16, 24, 32, 48, 64. No off-grid values.
+- Radii: `--r-sm 8px`, `--r-md 12px`, `--r-lg 16px`, pills fully rounded. One radius language everywhere.
+- Card padding 20 to 24px; section gaps 24 to 32px. App content max width 1280px with comfortable gutters; the report prose column caps near 760px; tables span the container. Table rows about 44px, comfortable not cramped.
+
+#### 8.5.4 Elevation and surfaces
+- Prefer a hairline border plus a surface-lightness step over heavy shadows. `--shadow-sm: 0 1px 2px rgba(16,18,22,.06)`, `--shadow-md: 0 4px 16px rgba(16,18,22,.08)`. In dark mode, lift comes from surface steps and a 1px border, with shadows near zero. No deep or colored drop shadows.
+
+#### 8.5.5 Motion (restrained)
+- Durations: 150ms for hover and press, 200 to 260ms for enter and reveal. Easing `cubic-bezier(.2,.7,.2,1)` (calm ease-out).
+- Hovers shift background or border subtly, never jump layout. Content reveals as a gentle fade plus an 8px rise; the tools-used and reasoning disclosures may stagger children by about 40ms. Always honor `prefers-reduced-motion` by dropping to opacity-only or none. No decorative or looping animation.
+
+#### 8.5.6 Iconography
+- One set: lucide-react, 1.5px stroke, 16 to 20px, `currentColor`, optically aligned to the text baseline. No mixed icon styles.
+
+#### 8.5.7 Data display
+- **Tables:** no zebra fill; hairline row separators; numerals right-aligned in Geist Mono with tabular figures; gentle row hover; positive and negative values carry the muted semantic color, not bold red and green.
+- **Price chart (Recharts):** a single accent line over a soft accent area fill at low alpha, hairline gridlines in `--border`, axis labels in muted mono. No chart junk, no gradients beyond the one soft fill.
+- **Source chips:** small mono pills, muted, that name or link the origin; they are the signature and appear on every factual datum.
+
+#### 8.5.8 Accessibility floor (part of "highest standards")
+- WCAG AA contrast (text at least 4.5:1, large and UI at least 3:1). Visible `focus-visible` ring (2px accent, 2px offset) on every interactive element. Full keyboard reachability, semantic landmarks, alt text, hit targets at least 40px, and reduced motion respected.
+
+#### 8.5.9 Anti-patterns (the "not painful for eyes" rules; never do these)
+Pure `#000` or `#fff` as background or text. More than one accent hue. Neon or fully saturated sentiment colors. Heavy or colored shadows. More than the two type families plus the mono. Body line-height under 1.5. Muted text below AA contrast. Inconsistent radii or off-grid spacing. The stock, unthemed shadcn look. Dense uppercase body text.
+
+#### 8.5.10 Implementation
+- All tokens are CSS custom properties in `globals.css` (`:root` is dark; `[data-theme="light"]` overrides), mapped into the Tailwind theme via `var()` so components reference semantic tokens, never raw hex.
+- Fonts via `next/font` (self-hosted Geist Sans and Geist Mono, `display: swap`, no layout shift).
+- Theme: dark default, a working light mode, system-preference detection, and a persisted toggle.
+- shadcn/ui components are re-themed to these tokens, not shipped stock. A component that does not consume a token is not done.
+
 ---
 
 ## PART 9 — MULTI-TENANCY AND SECURITY
@@ -363,7 +422,7 @@ The constitution describes the full design. The build does not implement all of 
 - The three tool clients (market, news, knowledge base) behind the read-through cache, each sourced and failing safely.
 - The agentic loop: planner selects tools, executor runs them, synthesizer returns a Zod-valid sourced ResearchReport, with validate-and-repair.
 - Research CRUD: run, save, list with tag and text search, read with tenant re-check, delete.
-- Frontend: dashboard, query interface, structured report view (cards, one price chart, comparison table, news with sentiment badges, risks, source chips, a simple "tools used" indicator), history.
+- Frontend: dashboard, query interface, structured report view (cards, one price chart, comparison table, news with sentiment badges, risks, source chips, a simple "tools used" indicator), history. Built to the locked Design System (Part 8.5).
 - The three demo workflows working end to end.
 - ARCHITECTURE.md (five diagrams), DECISIONS.md, README with screenshots, `.env.example`, `.gitignore`, Docker Compose, seed.
 
@@ -442,7 +501,7 @@ Steps are ordered by dependency, not by day. Each step lists its goal, the rubri
 - **6.4 Structured report view:** cards, comparison table, price chart, news with sentiment badges, risks, source chips, and the AI reasoning panel. *Machine test:* every factual element shows a source; the reasoning panel lists the tools actually used.
 - **6.5 History (search, tag filter, delete), watchlist management, admin panel.** *Machine test:* search and tag filter return correct subsets; admin panel is absent for analysts.
 - *Why after the API:* a product, not a Postman collection, but built on contracts that already hold. *Rejected:* UI-first against mocked data, which hides integration bugs until the end.
-- **CHECKPOINT F:** the full product runs locally and demos all three workflows. This is a complete, submittable project.
+- **CHECKPOINT F:** the full product runs locally and demos all three workflows, built to the Design System standard in Part 8.5. This is a complete, submittable project.
 
 ### PHASE 7 — Hardening and the docs that are graded
 - **7.1 Isolation tests:** automated checks that a cross-tenant read and write are denied at the database, plus an admin-vs-analyst permission test. *Machine test:* the suite passes and fails loudly if a policy regresses.
@@ -544,5 +603,6 @@ Each variable is documented inline in `.env.example` with a one-line description
 ---
 
 ## CHANGELOG
+- **v1.2** — Added the locked Design System (Part 8.5) and Decision Ledger entry D12, raising the UI bar to a calm, professional, low-eye-strain product standard: dark-default with a light mode, a desaturated palette that never uses pure black or white, one indigo accent, muted semantic colors, Geist Sans with Geist Mono and tabular numerals, an 8px grid, hairline elevation, restrained motion, a WCAG AA floor, and a provenance-first signature. Phases 0 to 5 unchanged; this only governs Part 8 and Phase 6.
 - **v1.1** — Merged a three-model review round. Added Part 9.5 Implementation Tiering (MoSCoW) to separate the full design from the MVP build path under the evenings-only budget. Replaced custom auth endpoints with Supabase Auth used directly plus a single `/api/onboarding` call. Tagged every API endpoint with its tier and demoted role-change to WON'T-for-MVP. Clarified the knowledge base to 4 to 6 documents total, embedded once at seed with no runtime ingestion UI. Verified and held Next.js 16 and Vercel AI SDK v6 as current stable as of June 2026 against stale reviewer claims of 15 and v4. Retained the validate-and-repair loop with rationale that it reduces live-demo risk on free models.
 - **v1.0** — Initial constitution. Stack locked to Next.js 16 + Supabase + Vercel AI SDK v6 after a documented merit-based comparison against FastAPI and a FastAPI+Supabase hybrid. Option A selected. Roadmap structured into eight phases with checkpoints A through H.

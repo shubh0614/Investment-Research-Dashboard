@@ -5,21 +5,21 @@ import { Providers, ThemeScript } from "./providers";
 
 const serif = Newsreader({
   subsets: ["latin"],
-  variable: "--font-serif",
+  variable: "--font-newsreader",
   display: "swap",
   style: ["normal", "italic"],
 });
 
 const sans = Hanken_Grotesk({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-hanken",
   display: "swap",
 });
 
 const mono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-mono",
+  variable: "--font-ibm-plex",
   display: "swap",
 });
 
