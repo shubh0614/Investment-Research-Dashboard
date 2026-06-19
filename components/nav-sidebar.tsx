@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -72,7 +72,7 @@ export function NavSidebar({ profile, org, collapsed, onToggle }: NavSidebarProp
       style={{
         width: collapsed ? 56 : 224,
         borderRight: "1px solid var(--border)",
-        background: "var(--surface)",
+        background: "var(--surface-1)",
         overflow: "hidden",
       }}
     >
@@ -90,7 +90,7 @@ export function NavSidebar({ profile, org, collapsed, onToggle }: NavSidebarProp
         <div
           style={{
             width: 28, height: 28, minWidth: 28, borderRadius: 8,
-            background: "var(--accent-weak)", color: "var(--accent)",
+            background: "var(--surface-3)", color: "var(--accent)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >
@@ -105,7 +105,7 @@ export function NavSidebar({ profile, org, collapsed, onToggle }: NavSidebarProp
 
       {/* Nav links */}
       <nav ref={navRef} className="flex flex-1 flex-col gap-0.5 p-2" style={{ position: "relative" }}>
-        {/* Sliding glowing indicator — only in expanded mode */}
+        {/* Sliding glowing indicator â€” only in expanded mode */}
         {!collapsed && indY > 0 && (
           <div
             className="nav-indicator"
@@ -151,13 +151,13 @@ export function NavSidebar({ profile, org, collapsed, onToggle }: NavSidebarProp
 
       {/* Bottom controls */}
       <div style={{ borderTop: "1px solid var(--border)", padding: collapsed ? "10px 6px 12px" : "10px 8px 12px" }}>
-        {/* User identity — only when expanded */}
+        {/* User identity â€” only when expanded */}
         {!collapsed && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 8px 10px" }}>
             <div
               style={{
                 width: 24, height: 24, minWidth: 24, borderRadius: "50%",
-                background: "var(--accent-weak)", color: "var(--accent)",
+                background: "var(--surface-3)", color: "var(--accent)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 11, fontWeight: 600,
               }}
@@ -173,7 +173,7 @@ export function NavSidebar({ profile, org, collapsed, onToggle }: NavSidebarProp
 
         {/*
           Action row layout:
-          Expanded:  [theme] [cmd]  ─── spacer ───  [logout] [collapse]
+          Expanded:  [theme] [cmd]  â”€â”€â”€ spacer â”€â”€â”€  [logout] [collapse]
           Collapsed: vertical column of all four
         */}
         <div
@@ -211,7 +211,7 @@ export function NavSidebar({ profile, org, collapsed, onToggle }: NavSidebarProp
             <button
               onClick={fireCmd}
               aria-label="Command palette"
-              data-tooltip="⌘K"
+              data-tooltip="âŒ˜K"
               className="btn-icon sidebar-tooltip flex h-9 w-9 items-center justify-center rounded-lg"
             >
               <Command size={14} strokeWidth={1.5} />
@@ -220,7 +220,7 @@ export function NavSidebar({ profile, org, collapsed, onToggle }: NavSidebarProp
             <button
               onClick={fireCmd}
               aria-label="Command palette"
-              title="⌘K"
+              title="âŒ˜K"
               className="btn-icon flex h-8 w-8 items-center justify-center rounded-lg"
             >
               <Command size={14} strokeWidth={1.5} />
@@ -251,7 +251,7 @@ export function NavSidebar({ profile, org, collapsed, onToggle }: NavSidebarProp
             </button>
           )}
 
-          {/* Collapse toggle — immediately next to logout */}
+          {/* Collapse toggle â€” immediately next to logout */}
           {collapsed ? (
             <button
               onClick={onToggle}
@@ -278,3 +278,4 @@ export function NavSidebar({ profile, org, collapsed, onToggle }: NavSidebarProp
     </aside>
   );
 }
+

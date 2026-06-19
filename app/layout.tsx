@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Newsreader, Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers, ThemeScript } from "./providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const serif = Newsreader({
   subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+  style: ["normal", "italic"],
+});
+
+const sans = Hanken_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-sans",
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const mono = IBM_Plex_Mono({
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -26,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full`}
+      className={`dark ${serif.variable} ${sans.variable} ${mono.variable} h-full`}
       suppressHydrationWarning
     >
       <head>

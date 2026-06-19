@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -64,13 +64,13 @@ export default function WatchlistPage() {
   return (
     <div className="mx-auto w-full max-w-2xl px-8 py-10 page-enter" style={{ color: "var(--text)" }}>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold" style={{ letterSpacing: "-0.018em" }}>Watchlist</h1>
+        <h1 className="text-2xl font-semibold" style={{ letterSpacing: "-0.018em", fontFamily: "var(--font-serif)" }}>Watchlist</h1>
         <p className="mt-0.5 text-sm" style={{ color: "var(--text-muted)" }}>Track companies for quick research access</p>
       </div>
 
       {/* Add form */}
       <form onSubmit={handleAdd} className="mb-6 rounded-xl border p-5 reveal card-lift"
-            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
         <p className="mb-3 text-sm font-medium">Add a ticker</p>
         <div className="flex gap-3">
           <input value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} placeholder="NVDA" maxLength={10}
@@ -85,12 +85,12 @@ export default function WatchlistPage() {
             onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--border)"; }} />
           <button type="submit" disabled={addMut.isPending || !ticker.trim() || !company.trim()}
             className="flex h-9 items-center gap-1.5 rounded-lg px-4 text-sm font-medium disabled:opacity-40"
-            style={{ background: "var(--accent)", color: "var(--bg)", border: "none", cursor: "pointer" }}>
+            style={{ background: "var(--accent)", color: "var(--accent-ink)", border: "none", cursor: "pointer" }}>
             {addMut.isPending ? <Loader2 size={13} strokeWidth={1.5} className="animate-spin" /> : <Plus size={13} strokeWidth={1.5} />}
             Add
           </button>
         </div>
-        {formErr && <p className="mt-2 text-xs" style={{ color: "var(--negative)" }}>{formErr}</p>}
+        {formErr && <p className="mt-2 text-xs" style={{ color: "var(--neg)" }}>{formErr}</p>}
       </form>
 
       {isLoading && (
@@ -101,7 +101,7 @@ export default function WatchlistPage() {
 
       {!isLoading && items.length === 0 && (
         <div className="flex h-32 items-center justify-center rounded-xl border"
-             style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+             style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
           <div className="text-center">
             <Bookmark size={22} strokeWidth={1.5} className="mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>No tickers yet</p>
@@ -110,7 +110,7 @@ export default function WatchlistPage() {
       )}
 
       {!isLoading && items.length > 0 && (
-        <div className="overflow-hidden rounded-xl border stagger" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <div className="overflow-hidden rounded-xl border stagger" style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
           {items.map((item, i) => (
             <div key={item.id} className="row-hover" style={{ borderTop: i > 0 ? "1px solid var(--border)" : undefined }}>
               <div className="flex items-center gap-4 px-5 py-3.5">
@@ -124,14 +124,14 @@ export default function WatchlistPage() {
                   Research
                 </Link>
                 {confirmId === item.id ? (
-                  <div className="flex items-center gap-1.5 rounded-lg border px-2 py-1 reveal" style={{ background: "color-mix(in srgb, var(--negative) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--negative) 25%, transparent)" }}>
-                    <AlertTriangle size={11} strokeWidth={1.5} style={{ color: "var(--negative)" }} />
-                    <span className="text-xs font-medium" style={{ color: "var(--negative)" }}>Remove?</span>
+                  <div className="flex items-center gap-1.5 rounded-lg border px-2 py-1 reveal" style={{ background: "color-mix(in srgb, var(--neg) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--neg) 25%, transparent)" }}>
+                    <AlertTriangle size={11} strokeWidth={1.5} style={{ color: "var(--neg)" }} />
+                    <span className="text-xs font-medium" style={{ color: "var(--neg)" }}>Remove?</span>
                     <button onClick={() => delMut.mutate(item.id)} disabled={delMut.isPending}
-                      className="text-xs font-semibold" style={{ color: "var(--negative)", background: "none", border: "none", cursor: "pointer" }}>
-                      {delMut.isPending ? "…" : "Yes"}
+                      className="text-xs font-semibold" style={{ color: "var(--neg)", background: "none", border: "none", cursor: "pointer" }}>
+                      {delMut.isPending ? "â€¦" : "Yes"}
                     </button>
-                    <span style={{ color: "var(--border)" }}>·</span>
+                    <span style={{ color: "var(--border)" }}>Â·</span>
                     <button onClick={() => setConfirmId(null)} className="text-xs" style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>
                       Cancel
                     </button>
@@ -150,3 +150,4 @@ export default function WatchlistPage() {
     </div>
   );
 }
+

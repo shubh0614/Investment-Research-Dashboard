@@ -40,7 +40,7 @@ export default function SignupPage() {
         <div className="mb-8 flex items-center gap-2.5">
           <div
             className="flex h-8 w-8 items-center justify-center rounded-lg"
-            style={{ background: "var(--accent-weak)", color: "var(--accent)" }}
+            style={{ background: "var(--surface-3)", color: "var(--accent)" }}
           >
             <BarChart3 size={16} strokeWidth={1.5} />
           </div>
@@ -66,7 +66,7 @@ export default function SignupPage() {
               id="email" type="email" autoComplete="email" required
               value={email} onChange={(e) => setEmail(e.target.value)}
               className="h-9 rounded-lg border px-3 text-sm outline-none transition-colors duration-150"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text)" }}
               onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
               onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--border)"; }}
             />
@@ -80,7 +80,7 @@ export default function SignupPage() {
               id="password" type="password" autoComplete="new-password" required minLength={6}
               value={password} onChange={(e) => setPassword(e.target.value)}
               className="h-9 rounded-lg border px-3 text-sm outline-none transition-colors duration-150"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text)" }}
               onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
               onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--border)"; }}
             />
@@ -89,7 +89,7 @@ export default function SignupPage() {
 
           {error && (
             <p className="rounded-lg px-3 py-2 text-sm"
-               style={{ background: "color-mix(in srgb, var(--negative) 12%, transparent)", color: "var(--negative)" }}>
+               style={{ background: "color-mix(in srgb, var(--neg) 12%, transparent)", color: "var(--neg)" }}>
               {error}
             </p>
           )}

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/repositories/profiles";
 import Link from "next/link";
 import { Search, ArrowRight, Clock, Bookmark, Sparkles } from "lucide-react";
@@ -29,17 +29,24 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-8 py-10 page-enter" style={{ color: "var(--text)" }}>
-      {/* ── Hero ── */}
-      <div className="hero-animated hero-glow mb-8 rounded-2xl border px-7 py-8"
-           style={{ border: "1px solid var(--border)" }}>
+      {/* Hero */}
+      <div
+        className="mb-8 rounded-xl border px-7 py-8"
+        style={{ border: "1px solid var(--border)", background: "var(--surface-1)" }}
+      >
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="rounded-md px-2 py-0.5 font-mono text-xs font-medium"
-                style={{ background: "var(--accent-weak)", color: "var(--accent)" }}>
+          <span
+            className="rounded-md px-2 py-0.5 font-mono text-xs font-medium"
+            style={{ background: "var(--surface-3)", color: "var(--accent)" }}
+          >
             {profile.role}
           </span>
           {org && <span className="text-xs" style={{ color: "var(--text-muted)" }}>{org.name}</span>}
         </div>
-        <h1 className="gradient-heading text-3xl font-bold" style={{ letterSpacing: "-0.022em", lineHeight: 1.2 }}>
+        <h1
+          className="text-3xl font-bold"
+          style={{ fontFamily: "var(--font-serif)", color: "var(--text)", letterSpacing: "-0.022em", lineHeight: 1.2 }}
+        >
           Good to see you, {displayName}.
         </h1>
         <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
@@ -50,7 +57,7 @@ export default async function DashboardPage() {
         <div className="mt-5 flex flex-wrap gap-3">
           <Link href="/research/new"
             className="inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-semibold"
-            style={{ background: "var(--accent)", color: "var(--bg)" }}>
+            style={{ background: "var(--accent)", color: "var(--accent-ink)" }}>
             <Sparkles size={13} strokeWidth={1.5} />
             New research
           </Link>
@@ -72,7 +79,7 @@ export default async function DashboardPage() {
 
           {reports.length === 0 ? (
             <div className="flex h-32 items-center justify-center rounded-xl border"
-                 style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                 style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
               <div className="text-center">
                 <Clock size={20} strokeWidth={1.5} className="mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>No reports yet</p>
@@ -86,9 +93,12 @@ export default async function DashboardPage() {
               {reports.map((r) => (
                 <Link key={r.id} href={`/research/${r.id}`}
                   className="card-lift group flex items-start justify-between rounded-xl border px-4 py-3"
-                  style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                  style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium" style={{ color: "var(--text)" }}>
+                    <p
+                      className="truncate text-sm font-medium"
+                      style={{ color: "var(--text)", fontFamily: "var(--font-serif)" }}
+                    >
                       {r.title || r.query_text}
                     </p>
                     <p className="mt-0.5 truncate text-xs" style={{ color: "var(--text-muted)" }}>{r.query_text}</p>
@@ -119,7 +129,7 @@ export default async function DashboardPage() {
 
           {watchlistItems.length === 0 ? (
             <div className="flex h-32 items-center justify-center rounded-xl border"
-                 style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                 style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
               <div className="text-center">
                 <Bookmark size={20} strokeWidth={1.5} className="mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>No tickers</p>
@@ -127,12 +137,15 @@ export default async function DashboardPage() {
               </div>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-xl border" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div className="overflow-hidden rounded-xl border" style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
               {watchlistItems.slice(0, 8).map((item, i) => (
                 <Link key={item.id} href={`/research/new?q=${encodeURIComponent(`Give me an overview of ${item.ticker}`)}`}
                   className="row-hover flex items-center justify-between px-4 py-2.5"
                   style={{ borderTop: i > 0 ? "1px solid var(--border)" : undefined, display: "flex" }}>
-                  <span className="font-mono text-sm font-semibold" style={{ color: "var(--accent)", fontVariantNumeric: "tabular-nums" }}>
+                  <span
+                    className="font-mono text-sm font-semibold"
+                    style={{ color: "var(--accent)", fontVariantNumeric: "tabular-nums", fontFamily: "var(--font-mono)" }}
+                  >
                     {item.ticker}
                   </span>
                   <span className="text-xs" style={{ color: "var(--text-muted)" }}>{item.company_name}</span>

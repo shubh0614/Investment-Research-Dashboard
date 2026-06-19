@@ -83,7 +83,7 @@ export function LayoutShell({ profile, org, children }: LayoutShellProps) {
           style={{
             padding: "12px 16px",
             borderBottom: "1px solid var(--border)",
-            background: "var(--surface)",
+            background: "var(--surface-1)",
             position: "sticky", top: 0, zIndex: 10,
           }}
         >
@@ -96,7 +96,7 @@ export function LayoutShell({ profile, org, children }: LayoutShellProps) {
             <Menu size={18} strokeWidth={1.5} />
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--accent-weak)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface-3)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Building2 size={12} strokeWidth={1.5} />
             </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{org.name}</span>

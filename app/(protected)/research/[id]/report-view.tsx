@@ -57,7 +57,7 @@ function CompanyCard({ co }: { co: CompanyOverview }) {
             {change != null && (
               <span
                 className="flex items-center gap-1 font-mono text-xs"
-                style={{ color: up ? "var(--positive)" : "var(--negative)", fontVariantNumeric: "tabular-nums" }}
+                style={{ color: up ? "var(--pos)" : "var(--neg)", fontVariantNumeric: "tabular-nums" }}
               >
                 {up ? <TrendingUp size={11} strokeWidth={1.5} /> : <TrendingDown size={11} strokeWidth={1.5} />}
                 {up ? "+" : ""}{change.toFixed(2)}%
@@ -201,9 +201,9 @@ function NewsSection({ items }: { items: NewsItem[] }) {
 
 // ── Risks section ─────────────────────────────────────────────────────────────
 const SEVERITY_COLOR: Record<RiskItem["severity"], string> = {
-  high:   "var(--negative)",
+  high:   "var(--neg)",
   medium: "#F5A623",
-  low:    "var(--positive)",
+  low:    "var(--pos)",
 };
 
 function RisksSection({ items }: { items: RiskItem[] }) {
@@ -247,7 +247,7 @@ function ReasoningPanel({ report }: { report: ResearchReport }) {
   return (
     <div
       className="rounded-xl border overflow-hidden"
-      style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+      style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
     >
       <button
         onClick={() => setOpen(!open)}
@@ -368,7 +368,7 @@ export function ReportView({ report: row }: { report: ReportRow }) {
               href={`/api/research/${row.id}/export?format=csv`}
               download
               className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150"
-              style={{ color: "var(--text-muted)", border: "1px solid var(--border)", background: "var(--surface)" }}
+              style={{ color: "var(--text-muted)", border: "1px solid var(--border)", background: "var(--surface-1)" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--accent)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--accent)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--border)"; }}
               title="Download CSV"
@@ -380,7 +380,7 @@ export function ReportView({ report: row }: { report: ReportRow }) {
               href={`/api/research/${row.id}/export?format=pdf`}
               download
               className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150"
-              style={{ color: "var(--text-muted)", border: "1px solid var(--border)", background: "var(--surface)" }}
+              style={{ color: "var(--text-muted)", border: "1px solid var(--border)", background: "var(--surface-1)" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--accent)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--accent)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--border)"; }}
               title="Download PDF"
@@ -411,7 +411,7 @@ export function ReportView({ report: row }: { report: ReportRow }) {
       {/* Summary */}
       <div
         className="mb-8 rounded-xl border px-5 py-4 reveal"
-        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+        style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
       >
         <p className="text-sm leading-relaxed" style={{ color: "var(--text)", lineHeight: "1.7" }}>
           {r.summary}
