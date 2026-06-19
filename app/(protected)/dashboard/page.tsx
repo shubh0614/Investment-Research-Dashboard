@@ -1,10 +1,11 @@
-﻿import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/repositories/profiles";
 import Link from "next/link";
-import { Search, ArrowRight, Clock, Bookmark, Sparkles } from "lucide-react";
+import { ArrowRight, Clock, Bookmark } from "lucide-react";
 import { listReports } from "@/lib/services/research";
 import { getWatchlist } from "@/lib/services/watchlist";
 import { getOrganization } from "@/lib/repositories/organizations";
+import { QuickSearch } from "./quick-search";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -28,72 +29,60 @@ export default async function DashboardPage() {
   const displayName = profile.full_name || profile.email.split("@")[0];
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-8 py-10 page-enter" style={{ color: "var(--text)" }}>
-      {/* Hero */}
-      <div
-        className="mb-8 rounded-xl border px-7 py-8"
-        style={{ border: "1px solid var(--border)", background: "var(--surface-1)" }}
-      >
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span
-            className="rounded-md px-2 py-0.5 font-mono text-xs font-medium"
-            style={{ background: "var(--surface-3)", color: "var(--accent)" }}
-          >
-            {profile.role}
-          </span>
-          {org && <span className="text-xs" style={{ color: "var(--text-muted)" }}>{org.name}</span>}
-        </div>
-        <h1
-          className="text-3xl font-bold"
-          style={{ fontFamily: "var(--font-serif)", color: "var(--text)", letterSpacing: "-0.022em", lineHeight: 1.2 }}
-        >
-          Good to see you, {displayName}.
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-          {total > 0
-            ? `${total} saved report${total !== 1 ? "s" : ""} in your workspace.`
-            : "Your workspace is empty. Run your first research query."}
+    <div className="mx-auto w-full max-w-5xl px-8 py-8 page-enter" style={{ color: "var(--text)" }}>
+
+      {/* Top bar: compact greeting + query */}
+      <div className="mb-7">
+        <p className="mb-4 text-xs" style={{ color: "var(--text-faint)", fontFamily: "var(--font-mono)" }}>
+          {displayName}
+          {org && <> · <span>{org.name}</span></>}
+          {" · "}
+          <span>{total} report{total !== 1 ? "s" : ""}</span>
         </p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Link href="/research/new"
-            className="inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-semibold"
-            style={{ background: "var(--accent)", color: "var(--accent-ink)" }}>
-            <Sparkles size={13} strokeWidth={1.5} />
-            New research
-          </Link>
-          <Link href="/history"
-            className="btn-outline inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm">
-            <Clock size={13} strokeWidth={1.5} />
-            View history
-          </Link>
-        </div>
+
+        {/* Query bar */}
+        <QuickSearch />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Recent reports */}
         <div className="lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Recent reports</h2>
+            <h2
+              className="text-sm font-semibold"
+              style={{ fontFamily: "var(--font-serif)", letterSpacing: "-0.01em" }}
+            >
+              Recent reports
+            </h2>
             <Link href="/history" className="text-xs" style={{ color: "var(--accent)" }}>View all</Link>
           </div>
 
           {reports.length === 0 ? (
-            <div className="flex h-32 items-center justify-center rounded-xl border"
+            <div className="flex h-32 items-center justify-center rounded-lg border"
                  style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
               <div className="text-center">
-                <Clock size={20} strokeWidth={1.5} className="mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
+                <Clock size={18} strokeWidth={1.5} className="mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>No reports yet</p>
                 <Link href="/research/new" className="mt-1 block text-xs" style={{ color: "var(--accent)" }}>
-                  Run your first research query →
+                  Run your first query →
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-2 stagger">
-              {reports.map((r) => (
+            <div
+              className="overflow-hidden rounded-lg stagger"
+              style={{ border: "1px solid var(--border)" }}
+            >
+              {reports.map((r, i) => (
                 <Link key={r.id} href={`/research/${r.id}`}
-                  className="card-lift group flex items-start justify-between rounded-xl border px-4 py-3"
-                  style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                  className="group flex items-start justify-between px-4 py-3 transition-colors duration-100"
+                  style={{
+                    background: "var(--surface-1)",
+                    borderTop: i > 0 ? "1px solid var(--border)" : undefined,
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "var(--surface-2)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "var(--surface-1)"; }}
+                >
                   <div className="min-w-0 flex-1">
                     <p
                       className="truncate text-sm font-medium"
@@ -111,8 +100,13 @@ export default async function DashboardPage() {
                     )}
                   </div>
                   <div className="ml-4 flex shrink-0 items-center gap-2">
-                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>{formatDate(r.created_at)}</span>
-                    <ArrowRight size={12} strokeWidth={1.5} style={{ color: "var(--text-muted)", opacity: 0, transition: "opacity 150ms" }} className="group-hover:opacity-100" />
+                    <span
+                      className="font-mono text-xs"
+                      style={{ color: "var(--text-faint)", fontVariantNumeric: "tabular-nums" }}
+                    >
+                      {formatDate(r.created_at)}
+                    </span>
+                    <ArrowRight size={11} strokeWidth={1.5} style={{ color: "var(--text-muted)", opacity: 0, transition: "opacity 120ms" }} className="group-hover:opacity-100" />
                   </div>
                 </Link>
               ))}
@@ -120,35 +114,64 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Watchlist */}
+        {/* Watchlist sidebar */}
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Watchlist</h2>
+            <h2
+              className="text-sm font-semibold"
+              style={{ fontFamily: "var(--font-serif)", letterSpacing: "-0.01em" }}
+            >
+              Watchlist
+            </h2>
             <Link href="/watchlist" className="text-xs" style={{ color: "var(--accent)" }}>Manage</Link>
           </div>
 
           {watchlistItems.length === 0 ? (
-            <div className="flex h-32 items-center justify-center rounded-xl border"
+            <div className="flex h-32 items-center justify-center rounded-lg border"
                  style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
               <div className="text-center">
-                <Bookmark size={20} strokeWidth={1.5} className="mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
+                <Bookmark size={18} strokeWidth={1.5} className="mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>No tickers</p>
-                <Link href="/watchlist" className="mt-1 block text-xs" style={{ color: "var(--accent)" }}>Add a ticker →</Link>
+                <Link href="/watchlist" className="mt-1 block text-xs" style={{ color: "var(--accent)" }}>Add one →</Link>
               </div>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-xl border" style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+            <div className="overflow-hidden rounded-lg" style={{ border: "1px solid var(--border)" }}>
+              {/* Header row */}
+              <div
+                className="grid px-4 py-2"
+                style={{
+                  gridTemplateColumns: "3rem 1fr 4.5rem",
+                  background: "var(--surface-2)",
+                  borderBottom: "1px solid var(--border)",
+                }}
+              >
+                <span className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-faint)" }}>Ticker</span>
+                <span className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-faint)" }}>Name</span>
+                <span className="text-right font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-faint)" }}>Δ 1D</span>
+              </div>
               {watchlistItems.slice(0, 8).map((item, i) => (
-                <Link key={item.id} href={`/research/new?q=${encodeURIComponent(`Give me an overview of ${item.ticker}`)}`}
-                  className="row-hover flex items-center justify-between px-4 py-2.5"
-                  style={{ borderTop: i > 0 ? "1px solid var(--border)" : undefined, display: "flex" }}>
+                <Link
+                  key={item.id}
+                  href={`/research/new?q=${encodeURIComponent(`Give me an overview of ${item.ticker}`)}`}
+                  className="grid px-4 py-2.5 transition-colors duration-100"
+                  style={{
+                    gridTemplateColumns: "3rem 1fr 4.5rem",
+                    background: "var(--surface-1)",
+                    borderTop: i > 0 ? "1px solid var(--border)" : undefined,
+                    alignItems: "center",
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "var(--surface-2)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "var(--surface-1)"; }}
+                >
                   <span
                     className="font-mono text-sm font-semibold"
-                    style={{ color: "var(--accent)", fontVariantNumeric: "tabular-nums", fontFamily: "var(--font-mono)" }}
+                    style={{ color: "var(--accent)", fontVariantNumeric: "tabular-nums" }}
                   >
                     {item.ticker}
                   </span>
-                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>{item.company_name}</span>
+                  <span className="truncate text-xs" style={{ color: "var(--text-muted)" }}>{item.company_name}</span>
+                  <span className="text-right font-mono text-xs" style={{ color: "var(--text-faint)" }}>—</span>
                 </Link>
               ))}
             </div>
