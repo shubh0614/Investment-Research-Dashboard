@@ -1,6 +1,6 @@
--- Phase 2.2: RLS policies and grants for Phase 2 tables.
+﻿-- Phase 2.2: RLS policies and grants for Phase 2 tables.
 -- Pattern: one policy per tenant table gating both reads and writes on org_id.
--- query_cache has no tenant policy — it stores only public market/news data.
+-- query_cache has no tenant policy - it stores only public market/news data.
 
 alter table public.research_reports  enable row level security;
 alter table public.report_tags        enable row level security;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Gate 1 + Gate 2 machine test:
  * 1. Creates two orgs + two users via the service role (bypassing RLS).
  * 2. Signs in each user via the Supabase auth API to get a JWT.
@@ -113,7 +113,7 @@ assert(tokenA.access_token, "Got JWT for user A");
 assert(tokenB.access_token, "Got JWT for user B");
 
 // 5. RLS: user A sees only Org A data
-console.log("\n5. RLS — user A should see only Org A rows...");
+console.log("\n5. RLS - user A should see only Org A rows...");
 const clientA = userClient(tokenA.access_token);
 const { data: profsSeenByA } = await clientA.from("profiles").select("id, org_id");
 const { data: orgsSeenByA  } = await clientA.from("organizations").select("id");
@@ -122,7 +122,7 @@ assert(profsSeenByA?.every(p => p.org_id === orgA.id), `User A profiles: all org
 assert(orgsSeenByA?.length === 1 && orgsSeenByA[0].id === orgA.id, `User A orgs: exactly Org Alpha (got ${orgsSeenByA?.length} rows)`);
 
 // 6. RLS: user B cannot see Org A's data
-console.log("\n6. RLS — user B should see only Org B rows and zero of Org A...");
+console.log("\n6. RLS - user B should see only Org B rows and zero of Org A...");
 const clientB = userClient(tokenB.access_token);
 const { data: profsSeenByB } = await clientB.from("profiles").select("id, org_id");
 const { data: orgsSeenByB  } = await clientB.from("organizations").select("id");
@@ -135,13 +135,13 @@ console.log("\n7. Cross-tenant direct read: user B tries to fetch user A's profi
 const { data: crossRead, error: crossErr } = await clientB.from("profiles").select("id").eq("id", userAId).single();
 assert(!crossRead && (crossErr?.code === "PGRST116" || crossErr?.code === "42501"), `Cross-tenant read denied (got: ${crossRead ? JSON.stringify(crossRead) : crossErr?.code})`);
 
-// 8. /api/me via HTTP (uses cookie auth — testing JSON shape here)
-console.log("\n8. /api/me — unauthenticated should return 401...");
+// 8. /api/me via HTTP (uses cookie auth - testing JSON shape here)
+console.log("\n8. /api/me - unauthenticated should return 401...");
 const meRes = await fetch(`${APP_URL}/api/me`);
 const meJson = await meRes.json();
 assert(meRes.status === 401 && meJson.ok === false, `/api/me unauthenticated → 401 (got ${meRes.status})`);
 
-// 9. /api/admin-test was removed after Gate 3 verification — skip.
+// 9. /api/admin-test was removed after Gate 3 verification - skip.
 
 // 10. /api/health still returns ok
 console.log("\n10. /api/health should still return ok...");
@@ -158,7 +158,7 @@ const { data: seedUsers } = await service.auth.admin.listUsers();
 const alice = seedUsers?.users?.find(u => u.email === "alice@alpha.test");
 const carol = seedUsers?.users?.find(u => u.email === "carol@beta.test");
 
-console.log("\n11. Phase 2 tables — RLS isolation on research_reports...");
+console.log("\n11. Phase 2 tables - RLS isolation on research_reports...");
 if (alice && carol) {
   // Sign in as alice (Alpha Capital admin)
   const tokenAlice = await signIn("alice@alpha.test", "password123");
@@ -171,7 +171,7 @@ if (alice && carol) {
   const { data: aliceReports } = await clientAlice.from("research_reports").select("id, org_id");
   const { data: carolReports } = await clientCarol.from("research_reports").select("id, org_id");
 
-  // Get their org_ids via service client (bypasses RLS — authoritative lookup).
+  // Get their org_ids via service client (bypasses RLS - authoritative lookup).
   const { data: aliceProf } = await service.from("profiles").select("org_id").eq("id", alice.id).single();
   const { data: carolProf } = await service.from("profiles").select("org_id").eq("id", carol.id).single();
 
@@ -192,7 +192,7 @@ if (alice && carol) {
     assert(!crossReport, `Cross-tenant report read denied for alice → carol's report`);
   }
 
-  console.log("\n12. Phase 2 tables — watchlist RLS isolation...");
+  console.log("\n12. Phase 2 tables - watchlist RLS isolation...");
   const { data: aliceWatchlist } = await clientAlice.from("watchlist_items").select("org_id");
   const { data: carolWatchlist } = await clientCarol.from("watchlist_items").select("org_id");
   assert(
@@ -204,7 +204,7 @@ if (alice && carol) {
     `Carol sees only Beta Ventures watchlist items (${carolWatchlist?.length} rows)`
   );
 
-  console.log("\n13. Phase 2 tables — documents RLS isolation...");
+  console.log("\n13. Phase 2 tables - documents RLS isolation...");
   const { data: aliceDocs } = await clientAlice.from("documents").select("org_id");
   const { data: carolDocs } = await clientCarol.from("documents").select("org_id");
   assert(
@@ -216,13 +216,13 @@ if (alice && carol) {
     `Carol sees only Beta Ventures documents (${carolDocs?.length} rows)`
   );
 
-  console.log("\n14. query_cache — accessible to both tenants (no RLS)...");
+  console.log("\n14. query_cache - accessible to both tenants (no RLS)...");
   const { data: cacheAlice, error: cacheErrA } = await clientAlice.from("query_cache").select("cache_key").limit(1);
   const { data: cacheCarol, error: cacheErrC } = await clientCarol.from("query_cache").select("cache_key").limit(1);
   assert(!cacheErrA && cacheAlice !== null, `Alice can read query_cache`);
   assert(!cacheErrC && cacheCarol !== null, `Carol can read query_cache`);
 } else {
-  console.log("  (skipping Phase 2 table tests — seed data not present; run npm run seed first)");
+  console.log("  (skipping Phase 2 table tests - seed data not present; run npm run seed first)");
 }
 
 // ── Summary ───────────────────────────────────────────────────────────────────

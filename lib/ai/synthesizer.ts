@@ -132,11 +132,11 @@ STRICT RULES:
 1. SOURCE ATTRIBUTION IS MANDATORY. Every company and risk entry MUST have a non-empty sources[] array.
    Use the exact source label from the tool output (e.g. "Finnhub", "Reuters", "NVIDIA Q3 FY2025 Earnings Call Summary").
    NEVER invent a source. If you cannot attribute a claim, omit that claim.
-2. MARKET DATA → METRICS — THIS IS THE HIGHEST PRIORITY RULE. Read it carefully and follow it exactly.
+2. MARKET DATA → METRICS - THIS IS THE HIGHEST PRIORITY RULE. Read it carefully and follow it exactly.
    For EVERY company you output, do the following BEFORE writing anything else for that company:
    a) Find the ticker symbol for that company (e.g. NVDA, AZN, AAPL).
    b) Search the "=== MARKET DATA ===" section for a block starting with that ticker.
-   c) If found, copy these values DIRECTLY into the company's metrics object — do NOT leave them null:
+   c) If found, copy these values DIRECTLY into the company's metrics object - do NOT leave them null:
       - "Current price: X"   → metrics.current_price = X  (also add "Finnhub" to sources[])
       - "1-day change: X%"   → metrics.price_change_1d = X
       - "Market cap: X"      → metrics.market_cap = X
@@ -146,7 +146,7 @@ STRICT RULES:
    d) Only set a metric to null if its value is literally "N/A" in the market data block.
    e) FALLBACK: If a metric is "N/A" in market data, scan WEB SEARCH and NEWS for that figure
       (e.g. "market cap of $200B", "P/E of 25") and extract the number.
-   IMPORTANT: Knowledge base and web sources describe the company overview — they do NOT replace market
+   IMPORTANT: Knowledge base and web sources describe the company overview - they do NOT replace market
    data metrics. Always use the market data block for numeric metrics when it is present.
 3. SENTIMENT CLASSIFICATION: For every news item, classify it as "positive", "negative", or "neutral"
    based on its content and assign a confidence (0.0–1.0).

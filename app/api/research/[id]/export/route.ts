@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createElement } from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 
-// PDF rendering can take 15-20s on cold start — raise Vercel default timeout
+// PDF rendering can take 15-20s on cold start - raise Vercel default timeout
 export const maxDuration = 60;
 import { requireAuth } from "@/lib/api/auth";
 import { getReport } from "@/lib/services/research";

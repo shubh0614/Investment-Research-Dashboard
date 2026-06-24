@@ -381,7 +381,7 @@ export async function generateWithTools(
       );
       return { ...result, durationMs };
     } catch (firstErr) {
-      // Groq/LLaMA sometimes fails tool-call JSON generation on first attempt — retry once
+      // Groq/LLaMA sometimes fails tool-call JSON generation on first attempt - retry once
       const msg = firstErr instanceof Error ? firstErr.message : String(firstErr);
       if (!msg.includes("Failed to call a function") && !msg.includes("tool")) throw firstErr;
       console.warn(`[llm] generateWithTools retry (first attempt: ${msg})`);

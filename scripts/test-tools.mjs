@@ -1,5 +1,5 @@
-/**
- * Phase 3 machine test — tool clients.
+﻿/**
+ * Phase 3 machine test - tool clients.
  *
  * 3.1 Cache:       second identical call is served from cache (logged), not upstream.
  * 3.2 Market data: pre-warmed cache hit; forced failure returns typed error, not throw.
@@ -52,7 +52,7 @@ function userClient(accessToken) {
 // ── 3.1 Cache ─────────────────────────────────────────────────────────────────
 
 console.log("\n=== Phase 3 tool-client machine tests ===\n");
-console.log("3.1 Cache — read-through behaviour...");
+console.log("3.1 Cache - read-through behaviour...");
 
 const TEST_KEY = "test:cache:phase3";
 const TEST_TTL = 60 * 60 * 1_000; // 1 hour
@@ -64,12 +64,12 @@ await service.from("query_cache").upsert(
   { onConflict: "cache_key" },
 );
 
-// First read — should be a cache hit
+// First read - should be a cache hit
 const { data: hit1 } = await service.from("query_cache")
   .select("payload_json, expires_at").eq("cache_key", TEST_KEY).maybeSingle();
 assert(hit1?.payload_json?.v === 42, "Cache stores and retrieves payload");
 
-// Second read — same value, proving no upstream call needed
+// Second read - same value, proving no upstream call needed
 const { data: hit2 } = await service.from("query_cache")
   .select("payload_json").eq("cache_key", TEST_KEY).maybeSingle();
 assert(hit2?.payload_json?.v === 42, "Cache hit on second read returns same value");
@@ -89,7 +89,7 @@ assert(!expired, "Expired cache entry is not returned by expiry-aware query");
 
 // ── 3.2 Market data ───────────────────────────────────────────────────────────
 
-console.log("\n3.2 Market data — pre-warmed cache hits...");
+console.log("\n3.2 Market data - pre-warmed cache hits...");
 
 // Verify NVDA and AMD are in the pre-warmed cache with correct shape
 for (const ticker of ["NVDA", "AMD"]) {
@@ -100,7 +100,7 @@ for (const ticker of ["NVDA", "AMD"]) {
     typeof data?.payload_json?.current_price === "number" &&
     Array.isArray(data?.payload_json?.series) &&
     data?.payload_json?.series?.length > 0,
-    `market:${ticker}:90d — cached, has ticker + current_price + series`,
+    `market:${ticker}:90d - cached, has ticker + current_price + series`,
   );
 }
 
@@ -114,7 +114,7 @@ assert(!missing, "Non-existent ticker has no cache entry (upstream needed, fails
 
 // ── 3.3 News ─────────────────────────────────────────────────────────────────
 
-console.log("\n3.3 News — pre-warmed cache hits...");
+console.log("\n3.3 News - pre-warmed cache hits...");
 
 for (const query of ["NVIDIA", "AMD", "Intel"]) {
   const { data } = await service.from("query_cache")
@@ -124,11 +124,11 @@ for (const query of ["NVIDIA", "AMD", "Intel"]) {
     Array.isArray(data?.payload_json?.articles) &&
     data?.payload_json?.articles?.length > 0 &&
     data?.payload_json?.articles?.every((a) => a.source),
-    `news:${query}:30 — cached, articles present, each has source`,
+    `news:${query}:30 - cached, articles present, each has source`,
   );
 }
 
-// Recency: all seeded articles have published_at — verify the field exists
+// Recency: all seeded articles have published_at - verify the field exists
 const { data: nvdaNews } = await service.from("query_cache")
   .select("payload_json").eq("cache_key", "news:NVIDIA:30").maybeSingle();
 const allHaveDate = nvdaNews?.payload_json?.articles?.every((a) => !!a.published_at);
@@ -136,7 +136,7 @@ assert(allHaveDate, "All news articles have published_at (recency requirement)")
 
 // ── 3.4 Knowledge base ────────────────────────────────────────────────────────
 
-console.log("\n3.4 Knowledge base — document chunks and tenant isolation...");
+console.log("\n3.4 Knowledge base - document chunks and tenant isolation...");
 
 // Check chunks were created by the seed
 const { count: totalChunks } = await service.from("document_chunks")
@@ -175,7 +175,7 @@ if (alice && carol) {
   );
 
   // Keyword search: Alice searching for NVIDIA should get relevant chunks.
-  // { type: 'plain' } maps to plainto_tsquery — handles natural prose queries.
+  // { type: 'plain' } maps to plainto_tsquery - handles natural prose queries.
   const { data: nvdaChunks } = await clientAlice
     .from("document_chunks")
     .select("content, documents!inner(company)")
@@ -204,14 +204,14 @@ if (alice && carol) {
     .select("embedding").not("embedding", "is", null).limit(1);
   const embeddingsPresent = (embeddedSample?.length ?? 0) > 0;
   if (embeddingsPresent) {
-    console.log("  ✓ Embeddings populated — vector search is available");
+    console.log("  ✓ Embeddings populated - vector search is available");
     passed++;
   } else {
-    console.log("  ⚠ Embeddings absent (OPENAI_API_KEY not set) — keyword fallback active");
+    console.log("  ⚠ Embeddings absent (OPENAI_API_KEY not set) - keyword fallback active");
     // Not a test failure: keyword mode is the designed fallback
   }
 } else {
-  console.log("  (skipping per-user KB tests — seed not found; run npm run seed first)");
+  console.log("  (skipping per-user KB tests - seed not found; run npm run seed first)");
 }
 
 // ── Summary ───────────────────────────────────────────────────────────────────

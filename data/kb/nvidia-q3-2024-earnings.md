@@ -1,4 +1,4 @@
-# NVIDIA Corporation — Q3 FY2025 Earnings Call Summary
+﻿# NVIDIA Corporation - Q3 FY2025 Earnings Call Summary
 
 **Date:** November 20, 2024
 **Source:** NVIDIA Investor Relations
@@ -19,7 +19,7 @@
 
 ## CEO Commentary (Jensen Huang)
 
-"Demand for Hopper remains very strong while preparations for Blackwell ramp are progressing. We are now shipping Blackwell in full production. Our data center customers are building AI factories — not just AI servers."
+"Demand for Hopper remains very strong while preparations for Blackwell ramp are progressing. We are now shipping Blackwell in full production. Our data center customers are building AI factories - not just AI servers."
 
 Key themes from the call:
 - Blackwell architecture shipping at scale; GB200 NVL72 systems deployed in customer data centers

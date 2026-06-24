@@ -1,20 +1,20 @@
-# ARCHITECTURE — Klypup Investment Research Dashboard
+﻿# ARCHITECTURE - Klypup Investment Research Dashboard
 
 > Five required diagrams + API reference. All diagrams are authored in Mermaid.
 
 ---
 
-## Diagram 1 — System Architecture
+## Diagram 1 - System Architecture
 
 Shows every component and the trust boundaries between them. The browser is the only untrusted zone; keys never leave the server runtime; external APIs are reached only on a cache miss.
 
 ```mermaid
 graph TB
-    subgraph browser ["Browser — untrusted public client"]
+    subgraph browser ["Browser - untrusted public client"]
         UI["React UI\nServer & Client Components\nNo API keys · No direct DB access"]
     end
 
-    subgraph nextjs ["Next.js 16 App Router — trusted server runtime (single process)"]
+    subgraph nextjs ["Next.js 16 App Router - trusted server runtime (single process)"]
         PROXY["proxy.ts\nPage-level auth gate\nRedirects unauthenticated browsers to /login\nPasses /api/* through unchanged"]
         API["Route Handlers  /api/*\nHTTP · Zod input validation\nrequireAuth() / requireAdmin()"]
         SVCS["Services\nBusiness logic · org-scoped operations"]
@@ -24,14 +24,14 @@ graph TB
         GW["LLM Gateway\nVercel AI SDK v6\nProvider-agnostic: Groq / OpenAI / Anthropic\nStructured output · tool-calling · validate-repair"]
     end
 
-    subgraph supabase ["Supabase — managed trusted service"]
+    subgraph supabase ["Supabase - managed trusted service"]
         SB_AUTH["Auth\nJWT issuance · session management\nsupabase.auth.signIn / signOut"]
-        PG["Postgres + Row Level Security\nAll tenant tables (org_id on every row)\npgvector embeddings in document_chunks\nquery_cache (no RLS — public market data only)"]
+        PG["Postgres + Row Level Security\nAll tenant tables (org_id on every row)\npgvector embeddings in document_chunks\nquery_cache (no RLS - public market data only)"]
     end
 
-    subgraph external ["External — reached server-side only, on cache miss"]
-        LLM_P["LLM Provider\nGroq (default, free) · OpenAI · Anthropic\nSwap via LLM_PROVIDER env var — zero code change"]
-        MKTAPI["Finnhub + Yahoo Finance\nFundamentals · real-time quote · price candles\n(Yahoo Finance for history — no key needed)"]
+    subgraph external ["External - reached server-side only, on cache miss"]
+        LLM_P["LLM Provider\nGroq (default, free) · OpenAI · Anthropic\nSwap via LLM_PROVIDER env var - zero code change"]
+        MKTAPI["Finnhub + Yahoo Finance\nFundamentals · real-time quote · price candles\n(Yahoo Finance for history - no key needed)"]
         NEWSAPI["NewsAPI\nFinancial news with recency filter"]
         WEBAPI["Tavily\nLive web search context"]
     end
@@ -56,7 +56,7 @@ graph TB
 
 ---
 
-## Diagram 2 — Research Query Data Flow
+## Diagram 2 - Research Query Data Flow
 
 Traces a single `POST /api/research` request from browser to structured report, showing every step including the cache, parallel tool execution, and the validate-and-repair loop.
 
@@ -80,11 +80,11 @@ sequenceDiagram
     RH ->> RH: requireAuth() → { userId, orgId, role }
     RH ->> O:  runOrchestrator({ query, supabase })
 
-    Note over O,PL: Step 1 — Plan
+    Note over O,PL: Step 1 - Plan
     O  ->> PL: "Which tools does this query need?"<br/>tool definitions: market, news, knowledge_base, web
     PL -->> O: tool calls: [get_market_data(NVDA,90d), search_news(NVIDIA,30), search_knowledge_base(NVIDIA), search_web(NVIDIA)]
 
-    Note over O,KB: Step 2 — Execute (independent tools run in parallel)
+    Note over O,KB: Step 2 - Execute (independent tools run in parallel)
     par Market data
         O  ->> EX: run get_market_data
         EX ->> CA: lookup market:NVDA:90d
@@ -114,11 +114,11 @@ sequenceDiagram
         EX -->> O:  WebResult { results[], sources[] }
     end
 
-    Note over O,SY: Step 3 — Synthesize
+    Note over O,SY: Step 3 - Synthesize
     O  ->> SY: query + aggregated tool results
     SY -->> O:  ResearchReport JSON (Zod schema)
 
-    Note over O: Step 4 — Validate & repair
+    Note over O: Step 4 - Validate & repair
     alt valid on first pass
         O  -->> RH: { ok: true, report }
     else invalid → repair pass
@@ -130,12 +130,12 @@ sequenceDiagram
     end
 
     RH -->> B: 200 { ok: true, data: { report } }
-    Note over B: UI maps ResearchReport fields<br/>to typed components — no raw text
+    Note over B: UI maps ResearchReport fields<br/>to typed components - no raw text
 ```
 
 ---
 
-## Diagram 3 — Entity-Relationship Diagram
+## Diagram 3 - Entity-Relationship Diagram
 
 Every tenant-owned table carries `org_id`. `query_cache` is intentionally not tenant-scoped because it stores only public market/news API payloads, never tenant data.
 
@@ -194,12 +194,12 @@ erDiagram
         uuid document_id FK
         int chunk_index
         text content
-        vector embedding "1536 dims — OpenAI text-embedding-3-small"
+        vector embedding "1536 dims - OpenAI text-embedding-3-small"
         int token_count
     }
     query_cache {
         uuid id PK
-        text cache_key UK "tool:params hash — no org_id"
+        text cache_key UK "tool:params hash - no org_id"
         jsonb payload_json
         timestamptz fetched_at
         timestamptz expires_at
@@ -230,7 +230,7 @@ erDiagram
 
 ---
 
-## Diagram 4 — AI Orchestration Flow
+## Diagram 4 - AI Orchestration Flow
 
 The model decides which tools to call; it is never a hardcoded pipeline. Tool failures degrade one section, not the whole report.
 
@@ -239,7 +239,7 @@ flowchart TD
     Q["User Query\ne.g. 'NVIDIA: stock performance, news, risks'"]
     Q --> PL
 
-    subgraph S1 ["Step 1 — Plan  (model decides)"]
+    subgraph S1 ["Step 1 - Plan  (model decides)"]
         PL["Planner  LLM call\nInput:  query + 4 tool definitions\nOutput: which tools + args\nPrompt explicitly forbids hardcoded sequences"]
     end
 
@@ -247,25 +247,25 @@ flowchart TD
     GATE -->|no| NOOP["Degrade: NO_TOOLS_SELECTED\nReturn error to UI"]
     GATE -->|yes| EX
 
-    subgraph S2 ["Step 2 — Execute  (parallel where independent)"]
-        EX["Executor\nFan out selected tools concurrently\nPromise.all — each fails safely"]
+    subgraph S2 ["Step 2 - Execute  (parallel where independent)"]
+        EX["Executor\nFan out selected tools concurrently\nPromise.all - each fails safely"]
         EX --> T1["get_market_data\nquery_cache → Finnhub (quote, profile, metrics)\n+ Yahoo Finance (price candles)\nReturns: prices, metrics, price_series"]
         EX --> T2["search_news\nquery_cache → NewsAPI\nReturns: articles + LLM sentiment classification"]
         EX --> T3["search_knowledge_base\npgvector similarity search\nRLS: only this org's chunks returned"]
         EX --> T4["search_web\nquery_cache → Tavily\nReturns: live web results + sources"]
-        T1 --> FAIL1["Failure → typed 'unavailable' result\nNever throws — report degrades, not crashes"]
+        T1 --> FAIL1["Failure → typed 'unavailable' result\nNever throws - report degrades, not crashes"]
         T2 --> FAIL2["Failure → typed 'unavailable' result"]
         T3 --> FAIL3["Failure → typed 'unavailable' result"]
         T4 --> FAIL4["Failure → typed 'unavailable' result"]
     end
 
-    FAIL1 & FAIL2 & FAIL3 & FAIL4 --> AGG["Aggregate ToolResults\nAll results typed — unavailable sections\nget an explicit degraded state in the UI"]
+    FAIL1 & FAIL2 & FAIL3 & FAIL4 --> AGG["Aggregate ToolResults\nAll results typed - unavailable sections\nget an explicit degraded state in the UI"]
 
-    subgraph S3 ["Step 3 — Synthesize"]
+    subgraph S3 ["Step 3 - Synthesize"]
         AGG --> SY["Synthesizer  LLM call\nInput:  query + all tool results\nOutput: ResearchReport JSON\nPrompt: attribute every claim, never invent a source"]
     end
 
-    subgraph S4 ["Step 4 — Validate + Repair"]
+    subgraph S4 ["Step 4 - Validate + Repair"]
         SY --> V1{"Zod schema\nvalid?"}
         V1 -->|yes| DONE["ResearchReport ✓\nEvery factual field has sources array\nRendered as typed UI components"]
         V1 -->|no| R["One repair pass\nModel given the validation error + original output"]
@@ -277,25 +277,25 @@ flowchart TD
 
 ---
 
-## Diagram 5 — Multi-Tenant Isolation Proof
+## Diagram 5 - Multi-Tenant Isolation Proof
 
 Isolation is enforced at the database tier, not only in application code. A forgotten `WHERE org_id` in application code cannot cause a cross-tenant leak because Postgres denies the rows before they leave the database.
 
 ```mermaid
 flowchart LR
-    subgraph OA ["Org A — Alpha Capital"]
+    subgraph OA ["Org A - Alpha Capital"]
         ALICE["Alice\njwt: { sub: uuid-a, ... }\nprofile.org_id = uuid-alpha"]
     end
-    subgraph OB ["Org B — Beta Ventures"]
+    subgraph OB ["Org B - Beta Ventures"]
         BOB["Bob\njwt: { sub: uuid-b, ... }\nprofile.org_id = uuid-beta"]
     end
 
-    subgraph APP ["Next.js API — application tier"]
+    subgraph APP ["Next.js API - application tier"]
         AUTH["requireAuth()\nResolves org_id from profiles\nInjects into service calls"]
-        SCOPE["Service layer also\nscopes every query by org_id\n(defense in depth — second line only)"]
+        SCOPE["Service layer also\nscopes every query by org_id\n(defense in depth - second line only)"]
     end
 
-    subgraph DB ["Postgres — database tier  (primary line of defence)"]
+    subgraph DB ["Postgres - database tier  (primary line of defence)"]
         HELPER["current_org_id()\nSECURITY DEFINER function\nReads profiles WHERE id = auth.uid()\nReturns this caller's org_id"]
         RLS["RLS predicate on every tenant table\nFOR SELECT USING org_id = current_org_id\nFOR INSERT WITH CHECK org_id = current_org_id\nFOR DELETE USING org_id = current_org_id AND role='admin'"]
         ROWS_A[("Alpha rows\norg_id = uuid-alpha")]
@@ -310,7 +310,7 @@ flowchart LR
     RLS -->|"uuid-alpha matches → rows returned"| ROWS_A
     RLS -->|"uuid-beta != uuid-alpha → 0 rows, PGRST116\neven with a guessed Alpha report ID"| ROWS_B
 
-    note1["Proof: test-isolation.mjs logs in as Bob,\nattempts to fetch an Alice report by ID.\nDatabase returns 0 rows — not an app-level check."]
+    note1["Proof: test-isolation.mjs logs in as Bob,\nattempts to fetch an Alice report by ID.\nDatabase returns 0 rows - not an app-level check."]
 ```
 
 ---
@@ -326,10 +326,10 @@ All endpoints return `{ ok: true, data }` on success or `{ ok: false, error: { c
 | `POST` | `/api/research` | session | any | 200, 400, 401, 422, 503 | Run the agentic research query. Returns a full `ResearchReport`. |
 | `POST` | `/api/research/save` | session | any | 201, 400, 401, 422 | Persist a generated report. |
 | `GET` | `/api/research` | session | any | 200, 401 | List org's saved reports. Supports `?tag=` and `?q=` filters. |
-| `GET` | `/api/research/:id` | session | any | 200, 401, 404 | Read one report. Re-checked against tenant — guessed IDs return 404. |
+| `GET` | `/api/research/:id` | session | any | 200, 401, 404 | Read one report. Re-checked against tenant - guessed IDs return 404. |
 | `PATCH` | `/api/research/:id` | session | any | 200, 400, 401, 404, 422 | Update title or tags. |
 | `DELETE` | `/api/research/:id` | session | any | 200, 401, 404 | Delete a report. |
-| `GET` | `/api/health` | public | — | 200, 503 | DB and LLM gateway reachability. Returns `{ ok, db, llm }`. |
+| `GET` | `/api/health` | public | - | 200, 503 | DB and LLM gateway reachability. Returns `{ ok, db, llm }`. |
 | `POST` | `/api/org/invite` | session | admin | 200, 401, 403 | Return (or generate) the org's invite code. |
 | `GET` | `/api/org/members` | session | admin | 200, 401, 403 | List all members of the org. |
 | `DELETE` | `/api/org/members/:id` | session | admin | 200, 400, 401, 403, 404 | Remove a member. Cannot remove self. RLS also blocks self-removal at DB tier. |
@@ -363,5 +363,5 @@ All endpoints return `{ ok: true, data }` on success or `{ ok: false, error: { c
 | 403 | `FORBIDDEN` | Authenticated but wrong role |
 | 404 | `NOT_FOUND` | Resource missing or cross-tenant id (indistinguishable by design) |
 | 409 | `DUPLICATE` | Unique constraint violation (e.g. duplicate watchlist ticker) |
-| 422 | `VALIDATION_ERROR` | Body fails Zod schema — includes `details` array with field-level errors |
+| 422 | `VALIDATION_ERROR` | Body fails Zod schema - includes `details` array with field-level errors |
 | 503 | `LLM_NOT_CONFIGURED`, `SYNTHESIS_FAILED` | Upstream unavailable or LLM key missing |

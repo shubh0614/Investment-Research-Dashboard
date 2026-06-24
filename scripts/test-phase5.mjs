@@ -1,5 +1,5 @@
-/**
- * Phase 5 machine test — API surface and CRUD.
+﻿/**
+ * Phase 5 machine test - API surface and CRUD.
  *
  * REQUIRES:
  *   1. `supabase start` running
@@ -61,7 +61,7 @@ async function api(method, path, token, body) {
 
 // ── Pre-flight ────────────────────────────────────────────────────────────────
 
-console.log("\n=== Phase 5 machine tests — API surface and CRUD ===\n");
+console.log("\n=== Phase 5 machine tests - API surface and CRUD ===\n");
 
 try {
   const health = await fetch(`${BASE_URL}/api/health`, { signal: AbortSignal.timeout(3000) });
@@ -233,7 +233,7 @@ assert(
 
 console.log("\n5.7 Watchlist CRUD...");
 
-// Empty initially (after seed, alice may have seeded items — just check 200)
+// Empty initially (after seed, alice may have seeded items - just check 200)
 const wlEmpty = await api("GET", "/api/watchlist", aliceToken);
 assert(wlEmpty.status === 200, "GET /api/watchlist → 200");
 

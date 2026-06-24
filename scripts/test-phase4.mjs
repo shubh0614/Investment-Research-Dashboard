@@ -1,5 +1,5 @@
-/**
- * Phase 4 machine test — AI orchestration.
+﻿/**
+ * Phase 4 machine test - AI orchestration.
  *
  * REQUIRES:
  *   1. `supabase start` running
@@ -98,7 +98,7 @@ async function callResearchWithSupabase(query, email, password) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-console.log("\n=== Phase 4 machine tests — AI orchestration ===\n");
+console.log("\n=== Phase 4 machine tests - AI orchestration ===\n");
 
 // Pre-flight: check dev server is up
 const serverUp = await checkServerRunning();
@@ -166,10 +166,10 @@ if (!llmReady) {
   process.exit(0);
 }
 
-console.log("  ✓ LLM gateway configured — running live orchestration tests");
+console.log("  ✓ LLM gateway configured - running live orchestration tests");
 
 // ── 4.2 + 4.3 + 4.4 Live orchestration ───────────────────────────────────────
-console.log("\n4.2/4.3/4.4 Live orchestration — NVIDIA overview query...");
+console.log("\n4.2/4.3/4.4 Live orchestration - NVIDIA overview query...");
 console.log("  (this will take ~10–30s while the LLM runs)\n");
 
 const QUERY = "Give me an overview of NVIDIA: stock performance, recent news, and key risks.";
@@ -214,7 +214,7 @@ assert(Array.isArray(report.tools_used) && report.tools_used.length > 0,"report.
 assert(typeof report.meta?.latency_ms === "number",                     "report.meta.latency_ms is present");
 assert(typeof report.meta?.token_usage?.total === "number",             "report.meta.token_usage.total is present");
 
-// 4.4 Source attribution — every company and risk must have sources
+// 4.4 Source attribution - every company and risk must have sources
 const allCompaniesHaveSources = report.companies.every(
   (c) => Array.isArray(c.sources) && c.sources.length > 0,
 );
@@ -225,14 +225,14 @@ const allRisksHaveSources = report.risks.every(
 );
 assert(allRisksHaveSources, "Every risk has non-empty sources[] (source attribution required)");
 
-// 4.2 Tool selection — NVIDIA overview should use at least market + news
+// 4.2 Tool selection - NVIDIA overview should use at least market + news
 const toolsUsed = report.tools_used;
 assert(
   toolsUsed.includes("get_market_data") || toolsUsed.includes("search_news") || toolsUsed.includes("search_knowledge_base"),
   `At least one tool was selected by the planner (got: [${toolsUsed.join(", ")}])`,
 );
 
-// 4.3 Parallel execution — latency should be less than 3x the number of tools
+// 4.3 Parallel execution - latency should be less than 3x the number of tools
 // (rough check: parallel execution < 3 * avg_tool_latency, not a sum)
 const toolCount = new Set([
   report.tools_used.includes("get_market_data")         ? "market" : null,

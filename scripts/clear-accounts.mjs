@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+﻿import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   "http://127.0.0.1:54101",
@@ -16,7 +16,7 @@ for (const u of data.users) {
   else console.log("  Deleted auth user: " + u.email);
 }
 
-// query_cache is intentionally excluded — it holds API responses with no user data,
+// query_cache is intentionally excluded - it holds API responses with no user data,
 // and clearing it burns through daily API quotas (NewsAPI: 100/day, Alpha Vantage: 25/day)
 const tables = ["audit_events","report_tags","research_reports","watchlist_items","document_chunks","documents","profiles","organizations"];
 for (const t of tables) {

@@ -1,9 +1,9 @@
-# THE KLYPUP CONSTITUTION
-### Build Constitution for the Investment Research Dashboard (Option A) — v1.2
+﻿# THE KLYPUP CONSTITUTION
+### Build Constitution for the Investment Research Dashboard (Option A) - v1.2
 
 > A full-stack web application that turns a research analyst's natural-language question into an AI-orchestrated, source-attributed, structured analysis in minutes. The AI is a feature inside a real multi-tenant product, not the product itself.
 
-**This document is the single source of truth for the entire build.** Every architectural decision, schema choice, API contract, prompt, and build step lives here. When building any step in Claude Code, this document is the law. If something is not specified here, default to the principles in **Part 2 — The Engineering Constitution**, and keep it consistent with what is already built. When a decision is made during the build that is not in this document, record it in the Decision Ledger (Part 3) and in `INTERVIEW_PREP.md` before moving on.
+**This document is the single source of truth for the entire build.** Every architectural decision, schema choice, API contract, prompt, and build step lives here. When building any step in Claude Code, this document is the law. If something is not specified here, default to the principles in **Part 2 - The Engineering Constitution**, and keep it consistent with what is already built. When a decision is made during the build that is not in this document, record it in the Decision Ledger (Part 3) and in `INTERVIEW_PREP.md` before moving on.
 
 **Two non-negotiable rules of this project:**
 1. **Explainability over cleverness.** Klypup grades on "if you can't explain it, it doesn't count." Every step in this document states *why* it exists and *what alternative was rejected and why*. Do not introduce a pattern that is not defensible out loud.
@@ -13,30 +13,30 @@
 
 ## TABLE OF CONTENTS
 
-- **Part 0** — Context, Constraints, and the Rubric We Are Optimizing
-- **Part 1** — The Product (what we build, the three demo workflows, roles)
-- **Part 2** — The Engineering Constitution (the rules every step obeys)
-- **Part 3** — The Decision Ledger (every architectural choice, with alternatives discarded)
-- **Part 4** — System Architecture (components and the five required diagrams)
-- **Part 5** — The Data Model (schema, RLS policies, indexes)
-- **Part 6** — The AI Layer (gateway, agentic loop, tools, structured output)
-- **Part 7** — API Design (endpoint contracts, response envelope, error taxonomy)
-- **Part 8** — Frontend Specification (routes, components, rendering contract, and the locked Design System)
-- **Part 9** — Multi-Tenancy and Security (isolation model, RBAC matrix, auth)
-- **Part 9.5** — Implementation Tiering (MoSCoW: what the constitution designs vs what the MVP builds)
-- **Part 10** — The Build Roadmap (step-wise, with definition-of-done and machine test)
-- **Part 11** — Deliverables (mapped to assignment Section 4)
-- **Part 12** — The Demo Script
-- **Part 13** — Bonus Layers (independent, droppable modules)
-- **Appendix A** — Environment Variable Catalog
-- **Appendix B** — Synthetic Data and Knowledge Base Specification
-- **Appendix C** — Commit and Branch Convention
-- **Appendix D** — Risk Register
+- **Part 0** - Context, Constraints, and the Rubric We Are Optimizing
+- **Part 1** - The Product (what we build, the three demo workflows, roles)
+- **Part 2** - The Engineering Constitution (the rules every step obeys)
+- **Part 3** - The Decision Ledger (every architectural choice, with alternatives discarded)
+- **Part 4** - System Architecture (components and the five required diagrams)
+- **Part 5** - The Data Model (schema, RLS policies, indexes)
+- **Part 6** - The AI Layer (gateway, agentic loop, tools, structured output)
+- **Part 7** - API Design (endpoint contracts, response envelope, error taxonomy)
+- **Part 8** - Frontend Specification (routes, components, rendering contract, and the locked Design System)
+- **Part 9** - Multi-Tenancy and Security (isolation model, RBAC matrix, auth)
+- **Part 9.5** - Implementation Tiering (MoSCoW: what the constitution designs vs what the MVP builds)
+- **Part 10** - The Build Roadmap (step-wise, with definition-of-done and machine test)
+- **Part 11** - Deliverables (mapped to assignment Section 4)
+- **Part 12** - The Demo Script
+- **Part 13** - Bonus Layers (independent, droppable modules)
+- **Appendix A** - Environment Variable Catalog
+- **Appendix B** - Synthetic Data and Knowledge Base Specification
+- **Appendix C** - Commit and Branch Convention
+- **Appendix D** - Risk Register
 - **Changelog**
 
 ---
 
-## PART 0 — CONTEXT, CONSTRAINTS, AND THE RUBRIC
+## PART 0 - CONTEXT, CONSTRAINTS, AND THE RUBRIC
 
 ### 0.1 Who and what
 - **Builder:** solo, using Claude Code as the primary implementation tool, reviewing and owning every block.
@@ -59,7 +59,7 @@ Every phase below is tagged with the rubric criterion it serves. We do not build
 
 ---
 
-## PART 1 — THE PRODUCT
+## PART 1 - THE PRODUCT
 
 ### 1.1 One-sentence definition
 An analyst types a research question in natural language; the system plans which data tools are needed, fetches market data, news with sentiment, and knowledge-base filings, synthesizes a structured, sourced report, and lets the analyst save, tag, search, and revisit it, all inside an organization-isolated workspace.
@@ -77,7 +77,7 @@ Roles are per organization. A user belongs to exactly one organization in the MV
 
 ---
 
-## PART 2 — THE ENGINEERING CONSTITUTION
+## PART 2 - THE ENGINEERING CONSTITUTION
 
 These rules are obeyed by every step. They are the default when this document is silent.
 
@@ -115,25 +115,25 @@ A step is done only when: it has a clear acceptance behavior, that behavior is v
 
 ---
 
-## PART 3 — THE DECISION LEDGER
+## PART 3 - THE DECISION LEDGER
 
 This is the heart of the project for interview purposes. Each entry states the decision, the merit reason, and the alternatives rejected and why. Every entry is mirrored, in interview phrasing, into `INTERVIEW_PREP.md`.
 
-### D1 — Stack: Next.js 16 (App Router) full-stack monolith
+### D1 - Stack: Next.js 16 (App Router) full-stack monolith
 **Decision.** One TypeScript codebase. Next.js App Router route handlers as the API, React Server Components and client components for the UI, deployed as one unit.
 **Why on merit.** This is a single-product MVP for one team. At this scope, a modular monolith is the architecturally correct choice. A separate backend service would introduce a network boundary, a second deployment, CORS surface, and cross-service auth plumbing with no compute justification, which is premature decomposition. One runtime means one type system spanning the API contract and the AI's structured output, which removes a whole class of integration bugs at the exact seam where AI apps break: parsing model output into typed UI.
 **Alternatives rejected.**
 - *FastAPI + Next.js (Python backend).* Strong on textbook separation and Python's AI ecosystem, and it is the right call when the center of gravity is heavy AI compute. It is not here. For Option A it buys a distributed system we do not need and costs setup and glue we cannot spare. Rejected on scope-fit, not on language preference.
 - *FastAPI + Supabase-as-DB hybrid with session-variable RLS.* The maximum-control option and genuinely impressive, but it hand-wires the RLS context per request across a service boundary, adding failure surface for a marginal gain over letting the database and a vetted client enforce the same invariant. Rejected as over-engineering for the MVP.
 
-### D2 — Backing service: Supabase (Auth + Postgres + RLS + pgvector)
+### D2 - Backing service: Supabase (Auth + Postgres + RLS + pgvector)
 **Decision.** Supabase provides authentication, the Postgres database, Row Level Security, and the vector store via the pgvector extension.
 **Why on merit.** It collapses the four highest-risk pieces of this assignment (auth, relational store, tenant isolation, vector store) into one coherent, vetted service. Critically, it lets us push the tenant-isolation invariant into the database tier rather than scattering it across application queries.
 **Alternatives rejected.**
 - *Roll-your-own auth (NextAuth/custom JWT) + raw Postgres.* Rolling your own auth is a security anti-pattern and a time sink with no upside here. Using a vetted, audited auth layer is the responsible choice.
 - *Separate vector database (Pinecone, Chroma, Weaviate).* Would force tenant isolation to be re-implemented a second time in a second system, and would require keeping two stores consistent. Rejected (see D4).
 
-### D3 — Multi-tenancy: Row Level Security at the database tier
+### D3 - Multi-tenancy: Row Level Security at the database tier
 **Decision.** Every tenant-owned table carries `org_id`. RLS policies on Postgres restrict every row to the requesting user's organization, derived from the authenticated JWT. Application code also scopes queries, as defense in depth, but the database is the authority.
 **Why on merit.** Broken object-level authorization is the number-one item on the OWASP API Security Top 10. App-layer filtering means one forgotten `WHERE org_id = ...` is a cross-tenant leak, forever, on every query. RLS makes isolation a property of the data: it holds even if application code has a bug. This is fail-closed, defense-in-depth design, and it is the strongest possible answer to the 15% criterion.
 **Alternatives rejected.**
@@ -141,12 +141,12 @@ This is the heart of the project for interview purposes. Each entry states the d
 - *Schema-per-tenant.* Stronger isolation but heavy operational cost (migrations across N schemas, connection management) and unjustified for an MVP. Noted in DECISIONS.md as the path we would take at real scale.
 **Interview line.** "Isolation cannot be bypassed by a forgotten WHERE clause, because it is enforced at the data layer, and the RAG store inherits the same policies for free."
 
-### D4 — RAG store: pgvector colocated in the same Postgres
+### D4 - RAG store: pgvector colocated in the same Postgres
 **Decision.** Document chunks and their embeddings live in a Postgres table with a `vector` column and an `org_id` column, queried with the pgvector similarity operator.
 **Why on merit.** Because embeddings sit in the same database, the same RLS policies that protect relational data also protect the knowledge base. Retrieval is tenant-isolated by construction with zero duplicated logic, and we can combine a tenant filter and a vector search in a single query. For a tenant-scoped RAG product, colocating vectors with relational data is the correct data architecture, not a shortcut.
 **Alternatives rejected.** External vector DBs (see D2): a second isolation implementation and a consistency problem for no benefit at this scale. A pure keyword/BM25 index: allowed by the assignment and simpler, but semantic retrieval is more honest to the "ask about filings in natural language" use case; we keep a keyword fallback for robustness.
 
-### D5 — LLM access: a provider-agnostic gateway on the Vercel AI SDK v6
+### D5 - LLM access: a provider-agnostic gateway on the Vercel AI SDK v6
 **Decision.** All model calls go through one internal `llm` module built on the Vercel AI SDK v6. The provider and model are chosen by environment variables. We start on Groq's free tier and can pivot to OpenAI or Anthropic by changing one model string and one key.
 **Why on merit.** No vendor lock-in is a real architectural property, not a convenience. The AI SDK exposes a uniform interface for generation, tool-calling, and Zod-validated structured output across providers, so the orchestration logic is identical regardless of who serves the tokens. This lets us benchmark models, build a fallback chain, and start at zero cost without rewriting a line of application logic.
 **Alternatives rejected.**
@@ -154,44 +154,44 @@ This is the heart of the project for interview purposes. Each entry states the d
 - *LangChain.js orchestration.* Heavier abstraction and bundle for an orchestration we want to own and explain line by line. The assignment rewards understanding the loop, not importing it. Rejected.
 **Interview line.** "The AI layer is provider-agnostic by construction; swapping Groq for a paid model is a config change, because tool-calling and structured output are normalized at the gateway."
 
-### D6 — The AI is agentic tool-calling, not a hardcoded pipeline
+### D6 - The AI is agentic tool-calling, not a hardcoded pipeline
 **Decision.** The model receives the query plus tool definitions and decides which tools to call. If the user asks only about news, the market and KB tools are not invoked. Tools that are independent run in parallel.
 **Why on merit.** This is the explicit AI requirement: the model orchestrates tools based on input, not a fixed sequence. It is also cheaper and faster, since we never fetch data the question does not need.
 **Alternatives rejected.** A fixed call-all-tools-then-summarize pipeline. Simpler, but it fails the "decides which tools to invoke" requirement and wastes calls and rate limit. Rejected.
 
-### D7 — Structured output: a strict Zod schema with validate-and-repair
+### D7 - Structured output: a strict Zod schema with validate-and-repair
 **Decision.** The synthesis step must return JSON conforming to a single Zod schema (`ResearchReport`). We validate the model output against it; on failure we run one bounded repair pass; if it still fails we degrade gracefully. The same Zod type is the contract the UI renders.
 **Why on merit.** The rubric demands structured components, not a wall of text, and source attribution on every datum. A strict schema makes attribution a required field, not an afterthought, and the shared type guarantees the UI and the model agree on shape. Validate-and-repair is the standard production pattern for non-deterministic generators.
 **Alternatives rejected.** Trusting raw model JSON (brittle), or regex-parsing prose (fragile and unexplainable). Rejected.
 
-### D8 — Data strategy: real free APIs behind a read-through cache, plus a synthetic knowledge base
+### D8 - Data strategy: real free APIs behind a read-through cache, plus a synthetic knowledge base
 **Decision.** Market data and news come from free sources, but every external response is written to a `query_cache` table and the seed script pre-warms that cache for the demo companies. At demo time the app serves from cache and never depends on a live upstream. The knowledge base is 4 to 6 hand-authored synthetic filings, which the assignment explicitly permits.
 **Why on merit.** A live demo that depends on a rate-limited free API is a demo that can fail in the room. The cache turns external calls into a performance and cost optimization (a real bonus) while making the demo deterministic. Synthetic filings let us control content quality and avoid the genuine pain of parsing 100-page SEC documents, with no loss of credibility because the ingestion pipeline is what is being graded.
 **Alternatives rejected.** Hitting live APIs during the demo (fragile), or real SEC filings (high parsing cost, low marginal credit). Rejected.
 
-### D9 — News sentiment: a constrained LLM classification, surfaced as a badge
+### D9 - News sentiment: a constrained LLM classification, surfaced as a badge
 **Decision.** Each news item is classified positive, negative, or neutral by the LLM with a confidence, rendered as a colored badge. News is filtered and sorted by recency (last 7 to 30 days).
 **Why on merit.** Satisfies the sentiment requirement without standing up a separate NLP model, and reuses the gateway we already built. The recency requirement is met at the data layer so the UI always reflects it.
 **Alternatives rejected.** A dedicated sentiment model or service. Over-scoped for the value. Rejected.
 
-### D10 — Charts: a single lightweight chart for price history, tables for comparisons
+### D10 - Charts: a single lightweight chart for price history, tables for comparisons
 **Decision.** One time-series chart for stock price (Recharts). Financial comparisons render as color-coded tables, not charts.
 **Why on merit.** A chart earns its complexity only where the data is genuinely temporal. Comparisons read faster as tables. This keeps the UI information-dense and the build lean.
 **Alternatives rejected.** Charting everything (slower to build, lower clarity). Rejected.
 
-### D11 — State and data fetching on the client: TanStack Query
+### D11 - State and data fetching on the client: TanStack Query
 **Decision.** Server state on the client is managed with TanStack Query (caching, loading and error states, invalidation after mutations).
 **Why on merit.** It gives us correct loading/error/empty handling and cache invalidation almost for free, which is directly what the rubric inspects, rather than hand-rolling fetch state.
 **Alternatives rejected.** Raw fetch in effects (boilerplate and bug-prone), a global store like Redux (unnecessary for server state). Rejected.
 
-### D12 — Design system: a calm, tokenized "research terminal" aesthetic
+### D12 - Design system: a calm, tokenized "research terminal" aesthetic
 **Decision.** A single locked design system (Part 8.5): dark by default with a light mode, a near-neutral desaturated palette that never uses pure black or pure white, one restrained indigo accent, muted semantic colors, Geist Sans paired with Geist Mono using tabular numerals for all data, an 8px spacing grid, hairline elevation, restrained motion, and a WCAG AA accessibility floor. The signature is provenance-first: every datum wears a quiet monospace source chip.
 **Why on merit.** Analysts read this product for long stretches, so low eye-strain is a functional requirement, not decoration. Desaturated neutrals, AA contrast, and comfortable line-height measurably reduce fatigue, which is what "soothing" means in engineering terms. A fully tokenized system makes the UI consistent and fast to build and is the line between an intern project and a product. Tabular numerals are a real correctness detail in finance, since columns of figures must align. Provenance-first ties the look directly to the product's core promise, that every claim is sourced.
 **Alternatives rejected.** Stock unthemed shadcn defaults (reads templated). The common high-contrast pure-black-plus-neon dashboard look (harsh over long sessions and a generic default, not a choice). Multiple accent hues and chart decoration (noise that lowers perceived trust). Rejected.
 
 ---
 
-## PART 4 — SYSTEM ARCHITECTURE
+## PART 4 - SYSTEM ARCHITECTURE
 
 ### 4.1 Components
 - **Client (browser):** React UI (Server and Client Components). Talks only to our API. No keys, no direct LLM or upstream calls.
@@ -213,20 +213,20 @@ Each diagram is committed as Mermaid in `ARCHITECTURE.md` and exported to PNG fo
 
 ---
 
-## PART 5 — THE DATA MODEL
+## PART 5 - THE DATA MODEL
 
 All tenant-owned tables carry `org_id uuid not null`. Timestamps `created_at` and `updated_at` on every table. UUID primary keys.
 
 ### 5.1 Tables
-- **organizations** — `id`, `name`, `invite_code` (unique), `created_at`. The tenant root.
-- **profiles** — `id` (= Supabase auth user id), `org_id`, `email`, `full_name`, `role` enum(`admin`,`analyst`), `created_at`. One profile per user; `org_id` is the tenant claim.
-- **research_reports** — `id`, `org_id`, `author_id`, `title`, `query_text`, `result_json` (the validated ResearchReport), `created_at`, `updated_at`. Core CRUD entity.
-- **report_tags** — `id`, `org_id`, `report_id`, `tag`. Many tags per report; indexed for tag search.
-- **watchlist_items** — `id`, `org_id`, `user_id`, `ticker`, `company_name`, `created_at`. Recommended feature.
-- **documents** — `id`, `org_id`, `company`, `doc_type`, `title`, `source_label`, `created_at`. A knowledge-base source document.
-- **document_chunks** — `id`, `org_id`, `document_id`, `chunk_index`, `content`, `embedding vector(N)`, `token_count`. The vector store; `embedding` indexed with an IVFFlat or HNSW index.
-- **query_cache** — `id`, `cache_key` (unique: tool + normalized params), `payload_json`, `fetched_at`, `expires_at`. Shared infrastructure; not tenant-scoped because market and news data are public, but never exposes tenant data.
-- **audit_events** — `id`, `org_id`, `actor_id`, `action`, `entity_type`, `entity_id`, `metadata_json`, `created_at`. Records logins, report create/update/delete, invitations, role changes. Supports the product-thinking and audit story.
+- **organizations** - `id`, `name`, `invite_code` (unique), `created_at`. The tenant root.
+- **profiles** - `id` (= Supabase auth user id), `org_id`, `email`, `full_name`, `role` enum(`admin`,`analyst`), `created_at`. One profile per user; `org_id` is the tenant claim.
+- **research_reports** - `id`, `org_id`, `author_id`, `title`, `query_text`, `result_json` (the validated ResearchReport), `created_at`, `updated_at`. Core CRUD entity.
+- **report_tags** - `id`, `org_id`, `report_id`, `tag`. Many tags per report; indexed for tag search.
+- **watchlist_items** - `id`, `org_id`, `user_id`, `ticker`, `company_name`, `created_at`. Recommended feature.
+- **documents** - `id`, `org_id`, `company`, `doc_type`, `title`, `source_label`, `created_at`. A knowledge-base source document.
+- **document_chunks** - `id`, `org_id`, `document_id`, `chunk_index`, `content`, `embedding vector(N)`, `token_count`. The vector store; `embedding` indexed with an IVFFlat or HNSW index.
+- **query_cache** - `id`, `cache_key` (unique: tool + normalized params), `payload_json`, `fetched_at`, `expires_at`. Shared infrastructure; not tenant-scoped because market and news data are public, but never exposes tenant data.
+- **audit_events** - `id`, `org_id`, `actor_id`, `action`, `entity_type`, `entity_id`, `metadata_json`, `created_at`. Records logins, report create/update/delete, invitations, role changes. Supports the product-thinking and audit story.
 
 ### 5.2 RLS policy pattern (applied to every tenant-owned table)
 - A SQL helper resolves the caller's `org_id` from their profile via the authenticated user id.
@@ -240,7 +240,7 @@ All tenant-owned tables carry `org_id uuid not null`. Timestamps `created_at` an
 
 ---
 
-## PART 6 — THE AI LAYER
+## PART 6 - THE AI LAYER
 
 ### 6.1 The gateway (`lib/llm`)
 - One module exposes `generateStructured(schema, messages, tools?)` and `streamStructured(...)`, built on AI SDK v6.
@@ -254,13 +254,13 @@ All tenant-owned tables carry `org_id uuid not null`. Timestamps `created_at` an
 4. **Validate and repair.** Output is parsed against the schema. On failure, one repair pass. On second failure, return a partial report with an error banner rather than failing the request.
 
 ### 6.3 The three tools (function-calling definitions)
-- **`get_market_data(tickers[], range)`** — price, volume, P/E, market cap, revenue, EPS, and historical prices for one or more tickers. Reads through `query_cache`. Source label: the market data provider.
-- **`search_news(query, since_days)`** — recent financial news for a company, each item summarized and classified positive/negative/neutral with a confidence. Recency-filtered to 7 to 30 days. Source label: the article outlet and URL.
-- **`search_knowledge_base(query, company?)`** — semantic retrieval over `document_chunks`, tenant-scoped by RLS, returning the most relevant filing/earnings passages. Source label: the document title and type.
+- **`get_market_data(tickers[], range)`** - price, volume, P/E, market cap, revenue, EPS, and historical prices for one or more tickers. Reads through `query_cache`. Source label: the market data provider.
+- **`search_news(query, since_days)`** - recent financial news for a company, each item summarized and classified positive/negative/neutral with a confidence. Recency-filtered to 7 to 30 days. Source label: the article outlet and URL.
+- **`search_knowledge_base(query, company?)`** - semantic retrieval over `document_chunks`, tenant-scoped by RLS, returning the most relevant filing/earnings passages. Source label: the document title and type.
 
 ### 6.4 The output contract (`ResearchReport` Zod schema, summarized)
 - `summary`: short synthesized overview.
-- `companies[]`: per company — overview card fields, key metrics, `sources[]`.
+- `companies[]`: per company - overview card fields, key metrics, `sources[]`.
 - `comparison?`: table rows when multiple companies are present, each cell sourced.
 - `priceSeries?`: points for the chart.
 - `news[]`: items with `sentiment`, `confidence`, `publishedAt`, `source`.
@@ -274,7 +274,7 @@ All tenant-owned tables carry `org_id uuid not null`. Timestamps `created_at` an
 
 ---
 
-## PART 7 — API DESIGN
+## PART 7 - API DESIGN
 
 All endpoints are under `/api`. All return the standard envelope. **Authentication itself (signup, login, logout, session) is handled by Supabase Auth via its client and server helpers, so there are no custom auth endpoints.** Our only auth-adjacent server endpoint is a one-time onboarding call. All tenant-scoped endpoints resolve `org_id` from the session and rely on RLS plus service-layer scoping. Admin-only endpoints additionally check role. The Tier column ties each endpoint to Part 9.5.
 
@@ -288,7 +288,7 @@ All endpoints are under `/api`. All return the standard envelope. **Authenticati
 | GET | `/api/research/:id` | session | any | MUST | Read one report (re-checked against tenant) |
 | PATCH | `/api/research/:id` | session | any | MUST | Update title or tags |
 | DELETE | `/api/research/:id` | session | any | MUST | Delete a report |
-| GET | `/api/health` | public | — | MUST | DB and LLM gateway reachability |
+| GET | `/api/health` | public | - | MUST | DB and LLM gateway reachability |
 | POST | `/api/org/invite` | session | admin | SHOULD | Generate or return invite code |
 | GET | `/api/org/members` | session | admin | SHOULD | Read-only member list |
 | GET | `/api/watchlist` | session | any | SHOULD | List watchlist |
@@ -303,16 +303,16 @@ All endpoints are under `/api`. All return the standard envelope. **Authenticati
 
 ---
 
-## PART 8 — FRONTEND SPECIFICATION
+## PART 8 - FRONTEND SPECIFICATION
 
 ### 8.1 Routes
-- `/login`, `/signup` — auth, with org creation or invite-code join.
-- `/` (dashboard home) — recent queries, saved reports, bookmarked companies, quick actions (New Research, Compare Companies).
-- `/research/new` — the natural-language query interface with example prompts.
-- `/research/[id]` — the structured report view, including the AI reasoning panel.
-- `/history` — searchable, tag-filterable list of saved reports with delete.
-- `/watchlist` — managed list of companies.
-- `/admin` — members, invitations, roles, audit trail. Visible to admins only.
+- `/login`, `/signup` - auth, with org creation or invite-code join.
+- `/` (dashboard home) - recent queries, saved reports, bookmarked companies, quick actions (New Research, Compare Companies).
+- `/research/new` - the natural-language query interface with example prompts.
+- `/research/[id]` - the structured report view, including the AI reasoning panel.
+- `/history` - searchable, tag-filterable list of saved reports with delete.
+- `/watchlist` - managed list of companies.
+- `/admin` - members, invitations, roles, audit trail. Visible to admins only.
 
 ### 8.2 The structured rendering contract
 The report view never prints raw text or markdown blocks of data. It maps `ResearchReport` fields to components: company overview cards, a comparison table with color-coded values, a price chart, news rows with sentiment badges, a risks section, and a source chip on every datum that links to or names its origin. An "AI reasoning" disclosure shows `toolsUsed`, latency, and the plan, which is both a product feature and the live proof of agentic behavior.
@@ -324,7 +324,7 @@ Every async surface renders loading, error, and empty states. Empty states are d
 - shadcn/ui plus Tailwind for accessible, composable primitives we control, over a heavy component library we would have to fight.
 - TanStack Query for all server state (D11). Mutations invalidate the relevant queries so the UI is always consistent after save, delete, or role change.
 
-### 8.5 Design System (LOCKED — the visual standard)
+### 8.5 Design System (LOCKED - the visual standard)
 
 This is the visual law. Every screen obeys it. The bar is not "a clean intern dashboard," it is a product that would not look out of place next to Linear, Stripe, Vercel, or Mercury: calm, precise, generous, and unmistakably considered. Nothing below is optional, and no component invents its own colors, spacing, or radii. Everything comes from a token.
 
@@ -380,7 +380,7 @@ Pure `#000` or `#fff` as background or text. More than one accent hue. Neon or f
 
 ---
 
-## PART 9 — MULTI-TENANCY AND SECURITY
+## PART 9 - MULTI-TENANCY AND SECURITY
 
 ### 9.1 The isolation model, end to end
 1. The user authenticates; Supabase issues a JWT carrying their user id.
@@ -409,7 +409,7 @@ The seed script creates two organizations, each with an admin and an analyst and
 
 ---
 
-## PART 9.5 — IMPLEMENTATION TIERING (MoSCoW)
+## PART 9.5 - IMPLEMENTATION TIERING (MoSCoW)
 
 The constitution describes the full design. The build does not implement all of it in the MVP window. This section is the honest separation between what is designed and what is built by Tuesday, tiered by rubric impact. This separation is itself a deliberate engineering decision: design completely, implement by priority under a time budget, and keep the cut items as the credible "what two more weeks would add" story.
 
@@ -447,17 +447,17 @@ Any WON'T item that gets built early is promoted; any MUST item at risk on Monda
 
 ---
 
-## PART 10 — THE BUILD ROADMAP (STEP-WISE)
+## PART 10 - THE BUILD ROADMAP (STEP-WISE)
 
 Steps are ordered by dependency, not by day. Each step lists its goal, the rubric it serves, why it is here, what was rejected, and its **machine test** (the check that proves it is done). **CHECKPOINT** markers denote a state where the app runs and could be submitted. Stop at any checkpoint and you have a coherent project.
 
-### PHASE 0 — Foundations
+### PHASE 0 - Foundations
 - **0.1 Repo and tooling.** Initialize Next.js 16 (App Router, TypeScript), Tailwind, shadcn/ui, ESLint, Prettier, `.gitignore`, Conventional Commits. *Machine test:* `npm run dev` serves a blank app; `npm run lint` passes.
 - **0.2 Config module.** Zod-validated env loader that fails fast on missing vars; `.env.example` seeded. *Machine test:* booting with a missing required var prints a clear error and exits.
 - **0.3 Supabase project and migrations baseline.** Create the project, wire the client, set up the migration tooling. *Machine test:* a trivial migration applies and a health query returns.
 - *Why first:* nothing can be built or tested without config, lint, and a reachable database. *Rejected:* deferring tooling to "later", which always becomes never and pollutes the commit history.
 
-### PHASE 1 — The multi-tenant spine (built before any feature)
+### PHASE 1 - The multi-tenant spine (built before any feature)
 - **1.1 Schema for organizations and profiles, with the role enum.** *Machine test:* migration applies; tables exist with constraints.
 - **1.2 Auth via Supabase Auth** (signup, login, logout, session through the Supabase client and server-side session helpers), protected routes, and a one-time `POST /api/onboarding` that creates or joins an org and writes the profile. No custom auth endpoints. *Machine test:* a scripted signup then login yields a session, and onboarding produces the correct org and role.
 - **1.3 RLS on organizations and profiles**, plus the `org_id` resolver helper. *Machine test:* a second user in a different org cannot read the first user's profile row (proven by a SQL or API check).
@@ -465,13 +465,13 @@ Steps are ordered by dependency, not by day. Each step lists its goal, the rubri
 - *Why before features:* every feature table inherits this spine. Building isolation first means no feature is ever written without it. *Rejected:* bolting tenancy on at the end, which is how leaks happen.
 - **CHECKPOINT A:** auth and isolation work. Two orgs, two roles, enforced at the database. This alone demonstrates the 15% criterion.
 
-### PHASE 2 — Data model and seed framework
+### PHASE 2 - Data model and seed framework
 - **2.1 Remaining tables and RLS:** research_reports, report_tags, watchlist_items, documents, document_chunks (with pgvector), query_cache, audit_events, with indexes from Part 5.3. *Machine test:* all migrations apply; RLS denies cross-tenant access on each tenant table.
 - **2.2 Seed framework:** idempotent script creating two orgs, four users (admin+analyst each), recognizable per-org data, and the audit baseline. *Machine test:* `npm run seed` on a clean database produces the two-org fixture; re-running does not duplicate.
 - *Why here:* features and the demo both need realistic data immediately, and the evaluator must see data on first run. *Rejected:* manual data entry, which is not reproducible and fails the "see data immediately" requirement.
 - **CHECKPOINT B:** the database is complete, isolated, and seeded.
 
-### PHASE 3 — Tool clients (no AI yet)
+### PHASE 3 - Tool clients (no AI yet)
 - **3.1 query_cache read-through helper.** *Machine test:* a second identical call is served from cache (logged), not the upstream.
 - **3.2 Market data client** behind the cache, normalized to our type with source metadata, timeout and retry. *Machine test:* fetching two tickers returns normalized data with sources; a forced upstream failure returns a typed unavailable result, not a throw.
 - **3.3 News client** with recency filter, normalized with source and URL. *Machine test:* returns items within the recency window, each with a source.
@@ -479,7 +479,7 @@ Steps are ordered by dependency, not by day. Each step lists its goal, the rubri
 - *Why before the AI:* the orchestrator can only be trusted if each tool is independently proven. *Rejected:* building tools and AI together, which makes failures impossible to localize.
 - **CHECKPOINT C:** every data source works, is cached, is sourced, and fails safely, callable without the LLM.
 
-### PHASE 4 — AI orchestration (the 25%)
+### PHASE 4 - AI orchestration (the 25%)
 - **4.1 The LLM gateway** on AI SDK v6: provider via env, Groq default, structured-output and tool-calling helpers, validate-and-repair, token logging. *Machine test:* a structured call returns schema-valid JSON; an induced malformed output triggers exactly one repair pass.
 - **4.2 The planner:** model selects tools from the query via tool-calling. *Machine test:* a news-only query plans only the news tool; a multi-company comparison plans market + KB for several tickers.
 - **4.3 The executor:** runs selected tools, parallel where independent, aggregates typed results. *Machine test:* two independent tools run concurrently (observable in the latency log) and one tool's failure degrades only its section.
@@ -487,14 +487,14 @@ Steps are ordered by dependency, not by day. Each step lists its goal, the rubri
 - *Why this order:* plan, then execute, then synthesize is the honest agentic flow the rubric asks for, and each sub-step is separately testable. *Rejected:* a single mega-prompt that fetches and writes in one shot, which is neither inspectable nor faithful to tool-calling.
 - **CHECKPOINT D:** `POST /api/research` returns a real, structured, sourced report from a natural-language query, end to end, server-side.
 
-### PHASE 5 — API surface and contracts
+### PHASE 5 - API surface and contracts
 - **5.1 Contracts module:** Zod request/response schemas for every endpoint in Part 7. *Machine test:* invalid input returns 422 with field detail.
 - **5.2 Research CRUD:** save, list (tag + text filter), read (tenant re-check), update, delete, each writing an audit event. *Machine test:* full create-read-update-delete cycle scoped to the org; cross-tenant read of a known id returns 404/403.
 - **5.3 Watchlist and admin endpoints** (members, invite, role change, audit). *Machine test:* role changes and invites work for admin, are denied for analyst.
 - *Why here:* the UI needs stable, validated contracts to build against. *Rejected:* letting the UI shape the API ad hoc, which produces inconsistent envelopes and weak validation.
 - **CHECKPOINT E:** a complete, validated, audited API. The product is fully usable via API.
 
-### PHASE 6 — Frontend
+### PHASE 6 - Frontend
 - **6.1 App shell, auth screens, protected layout, TanStack Query provider.** *Machine test:* unauthenticated access redirects to login; authenticated lands on the dashboard.
 - **6.2 Dashboard home:** recent queries, saved reports, watchlist, quick actions. *Machine test:* reflects seeded data for the logged-in org only.
 - **6.3 Research query interface** with example prompts and full loading/error states. *Machine test:* submitting a query renders a structured report; a forced backend error renders the error state, not a crash.
@@ -503,14 +503,14 @@ Steps are ordered by dependency, not by day. Each step lists its goal, the rubri
 - *Why after the API:* a product, not a Postman collection, but built on contracts that already hold. *Rejected:* UI-first against mocked data, which hides integration bugs until the end.
 - **CHECKPOINT F:** the full product runs locally and demos all three workflows, built to the Design System standard in Part 8.5. This is a complete, submittable project.
 
-### PHASE 7 — Hardening and the docs that are graded
+### PHASE 7 - Hardening and the docs that are graded
 - **7.1 Isolation tests:** automated checks that a cross-tenant read and write are denied at the database, plus an admin-vs-analyst permission test. *Machine test:* the suite passes and fails loudly if a policy regresses.
 - **7.2 Error-path polish:** every external failure mode produces a designed degraded state; rate-limit handling on external calls is verified.
 - **7.3 ARCHITECTURE.md** with the five Mermaid diagrams and the API reference. **DECISIONS.md** answering all seven assignment questions from the Decision Ledger. **README.md** with chosen option and rationale, stack rationale, tested setup steps, 4 to 6 screenshots, and known limitations. *Machine test:* a clean clone followed only by the README steps brings the app up with seeded data.
 - **7.4 Docker Compose** for one-command local setup; `.env.example` complete; `.gitignore` verified clean. *Machine test:* `docker compose up` on a fresh checkout serves the app.
 - **CHECKPOINT G:** all required deliverables exist and the setup is reproducible on a clean machine.
 
-### PHASE 8 — Presentation and rehearsal
+### PHASE 8 - Presentation and rehearsal
 - **8.1 PRESENTATION.pptx:** problem, architecture (the diagrams), AI orchestration, multi-tenant story, decisions and trade-offs, demo, what is next. Structure in Part 11.5.
 - **8.2 Demo rehearsal** of the three workflows plus the cross-tenant denial, timed to the 15-minute slot.
 - **8.3 INTERVIEW_PREP.md** final pass: every decision in interview phrasing plus anticipated questions and answers (maintained throughout, finalized here).
@@ -518,7 +518,7 @@ Steps are ordered by dependency, not by day. Each step lists its goal, the rubri
 
 ---
 
-## PART 11 — DELIVERABLES (mapped to assignment Section 4)
+## PART 11 - DELIVERABLES (mapped to assignment Section 4)
 
 ### 11.1 GitHub repository
 Complete source, frequent meaningful commits, `.gitignore` (no node_modules, no .env, no build artifacts), seed scripts so data appears on first run.
@@ -543,7 +543,7 @@ Runnable locally with Docker Compose; three workflows demonstrable: the core AI 
 
 ---
 
-## PART 12 — THE DEMO SCRIPT
+## PART 12 - THE DEMO SCRIPT
 
 1. **Core AI feature.** Log in as Org A analyst. Run the NVIDIA overview query. Narrate the reasoning panel as the tools fire (this proves agentic tool selection). Walk the structured report and point at source chips. Save and tag it. Show it appears in history.
 2. **Isolation.** Open Org B in a second session. Show its dashboard holds only Org B data. Copy an Org A report id and attempt to fetch it as Org B; show the denial. State the one-liner: enforced at the database, not in app code.
@@ -552,7 +552,7 @@ Runnable locally with Docker Compose; three workflows demonstrable: the core AI 
 
 ---
 
-## PART 13 — BONUS LAYERS (independent, droppable)
+## PART 13 - BONUS LAYERS (independent, droppable)
 
 Each is a self-contained module added only after CHECKPOINT F. Dropping any of them leaves a complete project.
 - **B1 Live deploy** to Vercel + Supabase, with a working URL in the README. Cheapest high-value bonus on this stack.
@@ -564,32 +564,32 @@ Priority if time allows: B1, then B2, then B4, then B3. All are in the pipeline;
 
 ---
 
-## APPENDIX A — ENVIRONMENT VARIABLE CATALOG (.env.example)
+## APPENDIX A - ENVIRONMENT VARIABLE CATALOG (.env.example)
 
-- `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL.
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key (browser-safe).
-- `SUPABASE_SERVICE_ROLE_KEY` — server-only privileged key. Never exposed to the client.
-- `LLM_PROVIDER` — `groq` | `openai` | `anthropic`. Default `groq`.
-- `LLM_MODEL` — model string for the chosen provider.
-- `LLM_API_KEY` — key for the chosen provider.
-- `EMBEDDING_PROVIDER`, `EMBEDDING_MODEL` — for knowledge-base embeddings.
-- `MARKET_DATA_API_KEY` — if the chosen market source requires one.
-- `NEWS_API_KEY` — if the chosen news source requires one.
-- `APP_URL` — base URL for links and callbacks.
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anon key (browser-safe).
+- `SUPABASE_SERVICE_ROLE_KEY` - server-only privileged key. Never exposed to the client.
+- `LLM_PROVIDER` - `groq` | `openai` | `anthropic`. Default `groq`.
+- `LLM_MODEL` - model string for the chosen provider.
+- `LLM_API_KEY` - key for the chosen provider.
+- `EMBEDDING_PROVIDER`, `EMBEDDING_MODEL` - for knowledge-base embeddings.
+- `MARKET_DATA_API_KEY` - if the chosen market source requires one.
+- `NEWS_API_KEY` - if the chosen news source requires one.
+- `APP_URL` - base URL for links and callbacks.
 Each variable is documented inline in `.env.example` with a one-line description and a safe placeholder.
 
-## APPENDIX B — SYNTHETIC DATA AND KNOWLEDGE BASE SPEC
+## APPENDIX B - SYNTHETIC DATA AND KNOWLEDGE BASE SPEC
 
 - **Demo companies:** a small set (for example NVIDIA, AMD, Intel, plus one or two from another sector) so comparisons are meaningful. The seed pre-warms `query_cache` for these.
 - **Knowledge base:** 4 to 6 hand-authored documents **in total** (not per company), for example a synthetic earnings-call summary and a risk-factors excerpt for two or three of the demo companies, in markdown, each with a clear source label. They are generated once (an LLM can draft them), saved under `/data`, and ingested by the seed script, which chunks them with overlap, embeds them once, and stores them. No runtime upload or re-indexing. Synthetic content is explicitly allowed by the assignment; the ingestion pipeline is the graded artifact, so volume is not the point. In the interview, note this scales to N documents unchanged.
 - **Per-org data:** Org A and Org B each get distinct saved reports, tags, and watchlist entries so isolation is visually obvious.
 
-## APPENDIX C — COMMIT AND BRANCH CONVENTION
+## APPENDIX C - COMMIT AND BRANCH CONVENTION
 
 - Conventional Commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`. The body explains the decision, not just the change.
 - Short-lived branches per phase, merged at each checkpoint, so history reads as the narrative of the build.
 
-## APPENDIX D — RISK REGISTER
+## APPENDIX D - RISK REGISTER
 
 | Risk | Mitigation |
 |---|---|
@@ -603,6 +603,6 @@ Each variable is documented inline in `.env.example` with a one-line description
 ---
 
 ## CHANGELOG
-- **v1.2** — Added the locked Design System (Part 8.5) and Decision Ledger entry D12, raising the UI bar to a calm, professional, low-eye-strain product standard: dark-default with a light mode, a desaturated palette that never uses pure black or white, one indigo accent, muted semantic colors, Geist Sans with Geist Mono and tabular numerals, an 8px grid, hairline elevation, restrained motion, a WCAG AA floor, and a provenance-first signature. Phases 0 to 5 unchanged; this only governs Part 8 and Phase 6.
-- **v1.1** — Merged a three-model review round. Added Part 9.5 Implementation Tiering (MoSCoW) to separate the full design from the MVP build path under the evenings-only budget. Replaced custom auth endpoints with Supabase Auth used directly plus a single `/api/onboarding` call. Tagged every API endpoint with its tier and demoted role-change to WON'T-for-MVP. Clarified the knowledge base to 4 to 6 documents total, embedded once at seed with no runtime ingestion UI. Verified and held Next.js 16 and Vercel AI SDK v6 as current stable as of June 2026 against stale reviewer claims of 15 and v4. Retained the validate-and-repair loop with rationale that it reduces live-demo risk on free models.
-- **v1.0** — Initial constitution. Stack locked to Next.js 16 + Supabase + Vercel AI SDK v6 after a documented merit-based comparison against FastAPI and a FastAPI+Supabase hybrid. Option A selected. Roadmap structured into eight phases with checkpoints A through H.
+- **v1.2** - Added the locked Design System (Part 8.5) and Decision Ledger entry D12, raising the UI bar to a calm, professional, low-eye-strain product standard: dark-default with a light mode, a desaturated palette that never uses pure black or white, one indigo accent, muted semantic colors, Geist Sans with Geist Mono and tabular numerals, an 8px grid, hairline elevation, restrained motion, a WCAG AA floor, and a provenance-first signature. Phases 0 to 5 unchanged; this only governs Part 8 and Phase 6.
+- **v1.1** - Merged a three-model review round. Added Part 9.5 Implementation Tiering (MoSCoW) to separate the full design from the MVP build path under the evenings-only budget. Replaced custom auth endpoints with Supabase Auth used directly plus a single `/api/onboarding` call. Tagged every API endpoint with its tier and demoted role-change to WON'T-for-MVP. Clarified the knowledge base to 4 to 6 documents total, embedded once at seed with no runtime ingestion UI. Verified and held Next.js 16 and Vercel AI SDK v6 as current stable as of June 2026 against stale reviewer claims of 15 and v4. Retained the validate-and-repair loop with rationale that it reduces live-demo risk on free models.
+- **v1.0** - Initial constitution. Stack locked to Next.js 16 + Supabase + Vercel AI SDK v6 after a documented merit-based comparison against FastAPI and a FastAPI+Supabase hybrid. Option A selected. Roadmap structured into eight phases with checkpoints A through H.

@@ -1,4 +1,4 @@
-# Advanced Micro Devices — Key Risk Factors & Competitive Analysis 2024
+﻿# Advanced Micro Devices - Key Risk Factors & Competitive Analysis 2024
 
 **Source:** AMD 2024 Annual Report (10-K) + Q3 2024 Earnings Call
 **Document Type:** Risk Factor Excerpt

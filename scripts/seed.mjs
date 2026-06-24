@@ -1,13 +1,13 @@
-/**
+﻿/**
  * Phase 2 + 3 idempotent seed script.
  *
  * Creates two orgs with distinct, recognizable data so cross-tenant isolation
- * is visually obvious in the UI demo. Safe to run multiple times — cleans up
+ * is visually obvious in the UI demo. Safe to run multiple times - cleans up
  * before re-seeding.
  *
  * Orgs:
- *   Alpha Capital  — alice@alpha.test (admin), bob@alpha.test (analyst)
- *   Beta Ventures  — carol@beta.test  (admin), dave@beta.test  (analyst)
+ *   Alpha Capital  - alice@alpha.test (admin), bob@alpha.test (analyst)
+ *   Beta Ventures  - carol@beta.test  (admin), dave@beta.test  (analyst)
  *
  * Run: npm run seed
  * Requires: `supabase start` running locally.
@@ -207,7 +207,7 @@ const { data: insertedAlphaReports, error: er1 } = await service
 ok("Alpha Capital reports (2)", er1);
 
 const betaReportResult = {
-  summary: "Intel's 18A node is the pivotal catalyst for the stock. If 18A achieves claimed PPA metrics and IFS lands a second hyperscaler anchor customer, the sum-of-parts valuation supports significant upside. The bear case — further process delays — risks a liquidity crunch given -$14B FCF.",
+  summary: "Intel's 18A node is the pivotal catalyst for the stock. If 18A achieves claimed PPA metrics and IFS lands a second hyperscaler anchor customer, the sum-of-parts valuation supports significant upside. The bear case - further process delays - risks a liquidity crunch given -$14B FCF.",
   companies: [
     {
       ticker: "INTC",
@@ -334,7 +334,7 @@ const apiKey = process.env.OPENAI_API_KEY ?? process.env.LLM_API_KEY ?? "";
 const embeddingEnabled = apiKey.length > 0;
 
 if (!embeddingEnabled) {
-  console.log("  ⚠ OPENAI_API_KEY not set — storing chunks without embeddings (keyword fallback mode).");
+  console.log("  ⚠ OPENAI_API_KEY not set - storing chunks without embeddings (keyword fallback mode).");
 }
 
 // Clear any existing chunks so re-runs are idempotent.
@@ -359,7 +359,7 @@ for (const org of [orgAlpha, orgBeta]) {
         const result = await embedMany({ model, values: chunks });
         embeddings = result.embeddings;
       } catch (e) {
-        console.warn(`  ⚠ Embedding failed for "${title}": ${e.message} — storing null vectors.`);
+        console.warn(`  ⚠ Embedding failed for "${title}": ${e.message} - storing null vectors.`);
       }
     }
 
@@ -381,7 +381,7 @@ for (const org of [orgAlpha, orgBeta]) {
 
 console.log("\n7. Pre-warming query cache with demo market data (Phase 2.2 + D8)...");
 
-// Synthetic price series — deterministic data shaped like the real API response.
+// Synthetic price series - deterministic data shaped like the real API response.
 // Phase 3 tool clients will refresh these from real APIs (or serve from cache).
 function pricePoint(date, open, close, high, low, volume) {
   return { date, open, close, high, low, volume };
@@ -565,11 +565,11 @@ console.log(`
 
 Alpha Capital (${orgAlpha.id.slice(0, 8)}…)
   invite code : ${orgAlpha.invite_code}
-  alice@alpha.test  — admin    / password123
-  bob@alpha.test    — analyst  / password123
+  alice@alpha.test  - admin    / password123
+  bob@alpha.test    - analyst  / password123
 
 Beta Ventures (${orgBeta.id.slice(0, 8)}…)
   invite code : ${orgBeta.invite_code}
-  carol@beta.test   — admin    / password123
-  dave@beta.test    — analyst  / password123
+  carol@beta.test   - admin    / password123
+  dave@beta.test    - analyst  / password123
 `);

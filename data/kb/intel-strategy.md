@@ -1,4 +1,4 @@
-# Intel Corporation — Strategic Transformation Update 2024
+﻿# Intel Corporation - Strategic Transformation Update 2024
 
 **Source:** Intel Investor Day 2024 + Q3 2024 Earnings Call
 **Document Type:** Strategic Analysis
@@ -8,10 +8,10 @@
 
 Intel is executing a four-pillar turnaround under CEO Pat Gelsinger:
 
-1. **IDM 2.0** — Retain internal manufacturing (vs. going fabless) while opening fabs to external customers
-2. **Intel Foundry Services (IFS)** — Compete with TSMC and Samsung for external chip orders
-3. **Process Technology Recovery** — Catch up to TSMC on node competitiveness (Intel 18A targeting 2025)
-4. **Product Portfolio Refresh** — Regain data center CPU leadership; build AI accelerator business (Gaudi)
+1. **IDM 2.0** - Retain internal manufacturing (vs. going fabless) while opening fabs to external customers
+2. **Intel Foundry Services (IFS)** - Compete with TSMC and Samsung for external chip orders
+3. **Process Technology Recovery** - Catch up to TSMC on node competitiveness (Intel 18A targeting 2025)
+4. **Product Portfolio Refresh** - Regain data center CPU leadership; build AI accelerator business (Gaudi)
 
 ## Process Technology Roadmap
 

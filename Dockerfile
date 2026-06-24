@@ -1,7 +1,7 @@
 FROM node:20-alpine AS base
 WORKDIR /app
 
-# Install dependencies — separate layer so Docker cache is reused on code-only changes
+# Install dependencies - separate layer so Docker cache is reused on code-only changes
 FROM base AS deps
 COPY package.json package-lock.json* ./
 RUN npm ci
@@ -14,7 +14,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# Production image — minimal, no dev dependencies
+# Production image - minimal, no dev dependencies
 FROM base AS runner
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

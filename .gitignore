@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — never commit secrets, but do commit the example template
+# env files - never commit secrets, but do commit the example template
 .env*
 !.env.example
 
@@ -41,6 +41,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local-only files — personal notes, not for submission
+# local-only files - personal notes, not for submission
 INTERVIEW_PREP.md
 KICKOFF_PHASE_0_1.md
+
+.vercel

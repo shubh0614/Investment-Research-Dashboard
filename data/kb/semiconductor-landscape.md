@@ -1,4 +1,4 @@
-# Semiconductor Industry — AI Competitive Landscape 2024-2025
+﻿# Semiconductor Industry - AI Competitive Landscape 2024-2025
 
 **Source:** Industry Research Synthesis
 **Document Type:** Competitive Landscape Overview
@@ -7,13 +7,13 @@
 
 The AI accelerator market has three distinct tiers:
 
-### Tier 1 — Dominant Platform
+### Tier 1 - Dominant Platform
 **NVIDIA** (market share: ~80% of AI training, ~70% of inference)
 - CUDA ecosystem lock-in: 4M+ developers, 20+ years of library investment
 - Blackwell (B100/B200/GB200) represents largest architecture leap since Hopper
 - Revenue: ~$120B run-rate annualized (Q3 FY2025)
 
-### Tier 2 — Credible Challengers
+### Tier 2 - Credible Challengers
 **AMD** (market share: ~10-15% AI accelerators)
 - MI300X competitive on memory bandwidth for inference
 - ROCm software ecosystem closing the gap with CUDA
@@ -24,12 +24,12 @@ The AI accelerator market has three distinct tiers:
 - Reduces Google's NVIDIA purchases but not available to third parties
 - Enables Google Cloud to offer differentiated AI services at lower cost
 
-### Tier 3 — Emerging / Niche
-**Intel Gaudi 3** — Price-competitive but limited software ecosystem
-**AWS Trainium/Inferentia** — Captive for Amazon internal workloads
-**Groq LPU** — Ultra-low latency inference; niche workloads
-**Cerebras WSE-3** — Giant wafer-scale chips for sparse models
-**SambaNova** — ReconfigurableDataflow Architecture for specific workloads
+### Tier 3 - Emerging / Niche
+**Intel Gaudi 3** - Price-competitive but limited software ecosystem
+**AWS Trainium/Inferentia** - Captive for Amazon internal workloads
+**Groq LPU** - Ultra-low latency inference; niche workloads
+**Cerebras WSE-3** - Giant wafer-scale chips for sparse models
+**SambaNova** - ReconfigurableDataflow Architecture for specific workloads
 
 ## Key Market Dynamics
 
@@ -70,16 +70,16 @@ Custom silicon reduces the total addressable market for merchant GPUs, but hyper
 ## Investment Themes
 
 ### High Conviction
-1. **AI infrastructure build-out continues through 2026** — Hyperscaler CapEx guidance calls support this; all four major hyperscalers raised 2025 targets
-2. **NVIDIA moat is real but not permanent** — CUDA switching costs are high; AMD ROCm improving; custom silicon structural headwind is real but slow
+1. **AI infrastructure build-out continues through 2026** - Hyperscaler CapEx guidance calls support this; all four major hyperscalers raised 2025 targets
+2. **NVIDIA moat is real but not permanent** - CUDA switching costs are high; AMD ROCm improving; custom silicon structural headwind is real but slow
 
 ### Medium Conviction
-3. **Inference economics improve profit margins** — Lower cost per token as inference chips improve; supports LLM commoditization but benefits infrastructure providers
-4. **AMD takes 15-25% AI accelerator share by 2026** — Memory bandwidth advantage for inference + improving ROCm + price pressure on NVIDIA
+3. **Inference economics improve profit margins** - Lower cost per token as inference chips improve; supports LLM commoditization but benefits infrastructure providers
+4. **AMD takes 15-25% AI accelerator share by 2026** - Memory bandwidth advantage for inference + improving ROCm + price pressure on NVIDIA
 
 ### Low Conviction / Speculative
-5. **Intel 18A foundry success** — Binary outcome; success transforms IFS into a TSMC competitor; failure risks liquidity
-6. **Custom silicon displacement accelerates** — Depends on hyperscaler in-house talent retention and scaling of custom chip programs
+5. **Intel 18A foundry success** - Binary outcome; success transforms IFS into a TSMC competitor; failure risks liquidity
+6. **Custom silicon displacement accelerates** - Depends on hyperscaler in-house talent retention and scaling of custom chip programs
 
 ## Key Metrics to Watch
 

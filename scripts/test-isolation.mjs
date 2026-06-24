@@ -1,18 +1,18 @@
-/**
- * Phase 7 — Isolation + RBAC test suite.
+﻿/**
+ * Phase 7 - Isolation + RBAC test suite.
  *
  * Proves three guarantees in an automated, reproducible way:
  *
- *   GUARANTEE 1 — DB-tier RLS isolation
+ *   GUARANTEE 1 - DB-tier RLS isolation
  *     A user in Org B cannot read Org A's rows from any tenant table,
  *     even when supplying a known Org A row ID directly.
- *     The database returns 0 rows — this is not an application-layer check.
+ *     The database returns 0 rows - this is not an application-layer check.
  *
- *   GUARANTEE 2 — API cross-tenant denial
+ *   GUARANTEE 2 - API cross-tenant denial
  *     POST-ing a known Org A report ID to the API as an Org B user returns 404.
- *     The response is indistinguishable from "not found" — no information leakage.
+ *     The response is indistinguishable from "not found" - no information leakage.
  *
- *   GUARANTEE 3 — API RBAC gates
+ *   GUARANTEE 3 - API RBAC gates
  *     Admin-only endpoints return 403 for authenticated analyst-role users.
  *     Unauthenticated requests return 401 for all protected endpoints.
  *
@@ -100,7 +100,7 @@ async function api(method, path, token, body) {
 // ── Setup: look up seeded users ───────────────────────────────────────────────
 
 console.log("\n╔══════════════════════════════════════════════════════════════╗");
-console.log("║  Klypup — Phase 7 Isolation + RBAC Test Suite               ║");
+console.log("║  Klypup - Phase 7 Isolation + RBAC Test Suite               ║");
 console.log("╚══════════════════════════════════════════════════════════════╝");
 
 section("Setup: locating seeded users");
@@ -116,7 +116,7 @@ for (const [email, user] of Object.entries(users)) {
     "Run `npm run seed` first");
 }
 
-// Abort if seed data is missing — remaining tests are meaningless
+// Abort if seed data is missing - remaining tests are meaningless
 if (!users["alice@alpha.test"] || !users["carol@beta.test"]) {
   console.error("\n  Seed data not found. Run `npm run seed` first.\n");
   process.exit(1);
@@ -147,7 +147,7 @@ try {
   pass("carol@beta.test signed in (Beta Ventures admin)");
   pass("dave@beta.test signed in (Beta Ventures analyst)");
 } catch (e) {
-  fail("Sign-in failed — cannot continue", e.message);
+  fail("Sign-in failed - cannot continue", e.message);
   process.exit(1);
 }
 
@@ -155,10 +155,10 @@ const clientAlice = dbClient(tokenAlice);
 const clientCarol = dbClient(tokenCarol);
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// GUARANTEE 1 — DB-tier RLS isolation
+// GUARANTEE 1 - DB-tier RLS isolation
 // ═══════════════════════════════════════════════════════════════════════════════
 
-section("Guarantee 1a: Profiles — each user sees only their own org");
+section("Guarantee 1a: Profiles - each user sees only their own org");
 
 const { data: profsAlice } = await clientAlice.from("profiles").select("id, org_id");
 const { data: profsCarol } = await clientCarol.from("profiles").select("id, org_id");
@@ -172,7 +172,7 @@ assert(
   `Carol sees only Beta Ventures profiles (${profsCarol?.length} rows, all org_id matches)`,
 );
 
-section("Guarantee 1b: Cross-tenant profile read — direct ID lookup");
+section("Guarantee 1b: Cross-tenant profile read - direct ID lookup");
 
 const { data: crossProfile } = await clientCarol
   .from("profiles")
@@ -186,7 +186,7 @@ assert(
   crossProfile ? `Got: ${JSON.stringify(crossProfile)}` : "",
 );
 
-section("Guarantee 1c: Research reports — RLS isolation");
+section("Guarantee 1c: Research reports - RLS isolation");
 
 const { data: reportsAlice } = await clientAlice.from("research_reports").select("id, org_id");
 const { data: reportsCarol } = await clientCarol.from("research_reports").select("id, org_id");
@@ -214,10 +214,10 @@ if (betaReportId) {
     crossReport ? `Got: ${JSON.stringify(crossReport)}` : "",
   );
 } else {
-  fail("No Beta Ventures reports found to test cross-tenant read — run npm run seed");
+  fail("No Beta Ventures reports found to test cross-tenant read - run npm run seed");
 }
 
-section("Guarantee 1d: Watchlist + documents — RLS isolation");
+section("Guarantee 1d: Watchlist + documents - RLS isolation");
 
 const { data: wlAlice } = await clientAlice.from("watchlist_items").select("org_id");
 const { data: wlCarol } = await clientCarol.from("watchlist_items").select("org_id");
@@ -243,7 +243,7 @@ assert(
   `Carol documents: only Beta Ventures docs (${docsCarol?.length} rows)`,
 );
 
-section("Guarantee 1e: Organizations — each user sees only their own org");
+section("Guarantee 1e: Organizations - each user sees only their own org");
 
 const { data: orgsAlice } = await clientAlice.from("organizations").select("id, name");
 const { data: orgsCarol } = await clientCarol.from("organizations").select("id, name");
@@ -258,25 +258,25 @@ assert(
 );
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// GUARANTEE 2 — API cross-tenant denial
+// GUARANTEE 2 - API cross-tenant denial
 // ═══════════════════════════════════════════════════════════════════════════════
 
-section("Guarantee 2: API cross-tenant denial — guessed report ID");
+section("Guarantee 2: API cross-tenant denial - guessed report ID");
 
 const alphaReportId = reportsAlice?.[0]?.id;
 if (alphaReportId) {
   const r = await api("GET", `/api/research/${alphaReportId}`, tokenCarol);
   assert(
     r.status === 404,
-    `Carol fetching Alpha report by ID → 404 (not 200 or 403 — no information leakage)`,
+    `Carol fetching Alpha report by ID → 404 (not 200 or 403 - no information leakage)`,
     `Got HTTP ${r.status}`,
   );
 } else {
-  fail("No Alpha Capital reports found to test API cross-tenant denial — run npm run seed");
+  fail("No Alpha Capital reports found to test API cross-tenant denial - run npm run seed");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// GUARANTEE 3 — API RBAC gates
+// GUARANTEE 3 - API RBAC gates
 // ═══════════════════════════════════════════════════════════════════════════════
 
 section("Guarantee 3a: Unauthenticated requests → 401");

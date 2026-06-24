@@ -1,5 +1,5 @@
-##
-## Klypup — Docker Compose
+﻿##
+## Klypup - Docker Compose
 ##
 ## IMPORTANT: Supabase manages its own Docker containers via the Supabase CLI.
 ## Before running `docker compose up`, you must first start Supabase separately:
@@ -11,7 +11,7 @@
 ##   docker compose up --build
 ##
 ## For a fully cloud-hosted deployment, point NEXT_PUBLIC_SUPABASE_URL and the
-## key vars at a hosted Supabase project — no local Supabase setup needed.
+## key vars at a hosted Supabase project - no local Supabase setup needed.
 ##
 
 services:

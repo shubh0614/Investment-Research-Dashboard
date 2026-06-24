@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 
 on:
   push:
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, typecheck, test]
     # Provide dummy env vars so the Zod config guard passes at build time.
-    # These values do NOT point to a real Supabase — no data is at risk.
+    # These values do NOT point to a real Supabase - no data is at risk.
     env:
       NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ci_placeholder_anon_key

@@ -1,4 +1,4 @@
-# TEST GUIDE — Klypup Investment Research Dashboard
+﻿# TEST GUIDE - Klypup Investment Research Dashboard
 
 > Step-by-step evaluation script covering all rubric areas. Each test includes the exact action, what to look for, and what a passing result looks like.
 
@@ -33,7 +33,7 @@ npm run dev
 
 ---
 
-## Test 1 — Authentication
+## Test 1 - Authentication
 
 **Goal:** Signup, login, logout, and protected route guard all work.
 
@@ -48,13 +48,13 @@ npm run dev
 
 ---
 
-## Test 2 — Core AI Research Feature
+## Test 2 - Core AI Research Feature
 
 **Goal:** Agentic pipeline runs, structured report renders with source attribution.
 
 Log in as `alice@alpha.test`. Go to **New Research**.
 
-### Test 2a — Single company query
+### Test 2a - Single company query
 Paste this query:
 ```
 Give me an overview of NVIDIA: stock performance this quarter, major news in the last 30 days, and key risks.
@@ -67,9 +67,9 @@ Give me an overview of NVIDIA: stock performance this quarter, major news in the
 - [ ] **News section** with at least 2 articles, each with a sentiment badge (Positive / Negative / Neutral)
 - [ ] **Risks section** with at least 2 risk items
 - [ ] Every data point shows a **source chip** (e.g. "Finnhub", "NewsAPI", article title)
-- [ ] No raw JSON or markdown dumps — everything is rendered as typed UI components
+- [ ] No raw JSON or markdown dumps - everything is rendered as typed UI components
 
-### Test 2b — Multi-company comparison
+### Test 2b - Multi-company comparison
 Paste this query:
 ```
 Compare NVIDIA and AMD: revenue growth, P/E ratio, and competitive position in AI chips.
@@ -81,17 +81,17 @@ Compare NVIDIA and AMD: revenue growth, P/E ratio, and competitive position in A
 - [ ] A **dual-line price chart** renders both tickers on the same chart
 - [ ] Sources cited for both companies independently
 
-### Test 2c — News-only query (tool selection)
+### Test 2c - News-only query (tool selection)
 Paste this query:
 ```
 What is the latest news about Tesla in the last 7 days?
 ```
 
 **What to check:**
-- [ ] The AI reasoning panel (bottom of report) shows **only** `search_news` and `search_web` were called — `get_market_data` should NOT appear for a pure news query
+- [ ] The AI reasoning panel (bottom of report) shows **only** `search_news` and `search_web` were called - `get_market_data` should NOT appear for a pure news query
 - [ ] Demonstrates the agent is not a hardcoded pipeline
 
-### Test 2d — Knowledge base query
+### Test 2d - Knowledge base query
 Paste this query:
 ```
 What were the key highlights from NVIDIA's most recent earnings call?
@@ -104,9 +104,9 @@ What were the key highlights from NVIDIA's most recent earnings call?
 
 ---
 
-## Test 3 — Saved Research & History
+## Test 3 - Saved Research & History
 
-**Goal:** Full CRUD on reports — save, tag, search, delete.
+**Goal:** Full CRUD on reports - save, tag, search, delete.
 
 | Step | Action | Expected result |
 |---|---|---|
@@ -119,7 +119,7 @@ What were the key highlights from NVIDIA's most recent earnings call?
 
 ---
 
-## Test 4 — Company Watchlist with Live Prices
+## Test 4 - Company Watchlist with Live Prices
 
 **Goal:** Watchlist stores tickers and shows live market data.
 
@@ -134,16 +134,16 @@ What were the key highlights from NVIDIA's most recent earnings call?
 
 ---
 
-## Test 5 — Multi-Tenant Isolation
+## Test 5 - Multi-Tenant Isolation
 
 **Goal:** Org A's data is invisible to Org B, even with a direct URL.
 
 | Step | Action | Expected result |
 |---|---|---|
 | 1 | Log in as `alice@alpha.test` in Window 1 | Alpha Capital dashboard |
-| 2 | Generate and save a report; copy its URL (e.g. `/research/abc-123`) | — |
-| 3 | Open an incognito window, log in as `carol@beta.test` | Beta Ventures dashboard — no Alpha Capital reports visible |
-| 4 | Paste Alice's report URL into Carol's window | **404 Not Found** — DB returns 0 rows (not an app-layer check) |
+| 2 | Generate and save a report; copy its URL (e.g. `/research/abc-123`) | - |
+| 3 | Open an incognito window, log in as `carol@beta.test` | Beta Ventures dashboard - no Alpha Capital reports visible |
+| 4 | Paste Alice's report URL into Carol's window | **404 Not Found** - DB returns 0 rows (not an app-layer check) |
 | 5 | Carol's dashboard and history show only Beta Ventures data | No Alpha Capital entries leak through |
 
 ### Automated DB-tier proof
@@ -154,7 +154,7 @@ npm run test:isolation
 
 Expected output:
 ```
-✓ Cross-tenant read denied (0 rows returned — PGRST116)
+✓ Cross-tenant read denied (0 rows returned - PGRST116)
 ✓ Admin-only endpoint returns 403 for analyst role
 ✓ Org A reports not visible to Org B user
 All assertions passed.
@@ -162,7 +162,7 @@ All assertions passed.
 
 ---
 
-## Test 6 — Role-Based Access Control
+## Test 6 - Role-Based Access Control
 
 **Goal:** Admin and analyst roles have distinct capabilities.
 
@@ -177,7 +177,7 @@ All assertions passed.
 
 ---
 
-## Test 7 — PDF & CSV Export
+## Test 7 - PDF & CSV Export
 
 **Goal:** Generated reports can be exported in both formats.
 
@@ -189,7 +189,7 @@ All assertions passed.
 
 ---
 
-## Test 8 — API Health Check
+## Test 8 - API Health Check
 
 **Goal:** Health endpoint confirms DB and LLM connectivity.
 
@@ -210,19 +210,19 @@ Expected response:
 
 ---
 
-## Test 9 — Error Handling & Edge Cases
+## Test 9 - Error Handling & Edge Cases
 
 | Scenario | How to trigger | Expected behaviour |
 |---|---|---|
-| Empty query | Submit research with blank input | Form validation error — request never sent |
+| Empty query | Submit research with blank input | Form validation error - request never sent |
 | Unknown ticker | Query: "What is the stock price of XYZABC123?" | Report generates with "no market data available" gracefully; no crash |
-| Duplicate watchlist | Add the same ticker twice | `409 Conflict` toast — no duplicate row |
+| Duplicate watchlist | Add the same ticker twice | `409 Conflict` toast - no duplicate row |
 | Invalid invite code | Onboarding "join" with a made-up code | Clear error message displayed |
 | Direct API without session | `curl http://localhost:3000/api/research` | `401 Unauthorized` JSON response |
 
 ---
 
-## Test 10 — Org Invite Flow
+## Test 10 - Org Invite Flow
 
 **Goal:** A new user can join an existing organisation using the invite code.
 

@@ -120,7 +120,7 @@ function injectMarketMetrics(output: SynthesisOutput, execResults: ExecutionResu
     const data = byTicker.get(company.ticker.toUpperCase());
     if (!data) continue;
 
-    // Overwrite with authoritative values — only replace null/undefined, never overwrite valid data
+    // Overwrite with authoritative values - only replace null/undefined, never overwrite valid data
     company.metrics.current_price   ??= data.current_price   ?? null;
     company.metrics.price_change_1d ??= data.change_pct      ?? null;
     company.metrics.market_cap      ??= data.market_cap      ?? null;
