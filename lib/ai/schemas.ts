@@ -78,6 +78,7 @@ export const CompanyOverviewSchema = z.object({
   ticker:   z.string().default(""),
   name:     z.string().default(""),
   overview: z.string().default("").describe("2–3 sentence company overview based on retrieved data"),
+  currency: z.string().default("USD").describe("ISO 4217 currency code for this company's prices, e.g. USD, INR, EUR. Copy from market data."),
   metrics:  CompanyMetricsSchema.optional().default({}),
   sources:  z.array(z.string()).min(1).describe("Data source labels for this company"),
 });

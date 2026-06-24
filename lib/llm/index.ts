@@ -197,6 +197,7 @@ export async function generateStructuredOutput<T>(
       "ticker": "string",            // stock symbol, e.g. "META" - NOT symbol, NOT code
       "name": "string",              // full company name
       "overview": "string",          // 2-3 sentence overview - NOT description, NOT about
+      "currency": "string",          // ISO 4217 currency code from market data, e.g. "USD", "INR", "EUR" - default "USD"
       "metrics": {                   // all values can be null if unavailable
         "current_price":   number or null,
         "price_change_1d": number or null,

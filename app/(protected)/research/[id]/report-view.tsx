@@ -37,11 +37,20 @@ function fmtMetric(val: number | null | undefined, prefix = "", suffix = "", bil
   return `${prefix}${val.toFixed(2)}${suffix}`;
 }
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$", EUR: "€", GBP: "£", INR: "₹", JPY: "¥",
+  HKD: "HK$", AUD: "A$", CAD: "C$", SGD: "S$", KRW: "₩",
+};
+function currencySymbol(code?: string | null): string {
+  return CURRENCY_SYMBOLS[code ?? "USD"] ?? ((code ?? "USD") + " ");
+}
+
 // ── Company card ──────────────────────────────────────────────────────────────
 function CompanyCard({ co }: { co: CompanyOverview }) {
   const { metrics } = co;
   const change = metrics.price_change_1d;
   const up = change != null && change >= 0;
+  const sym = currencySymbol((co as CompanyOverview & { currency?: string }).currency);
 
   return (
     <div className="card card-lg reveal">
@@ -71,7 +80,7 @@ function CompanyCard({ co }: { co: CompanyOverview }) {
             className="font-mono text-xl font-semibold"
             style={{ color: "var(--text)", fontVariantNumeric: "tabular-nums" }}
           >
-            ${metrics.current_price.toFixed(2)}
+            {sym}{metrics.current_price.toFixed(2)}
           </span>
         )}
       </div>
@@ -81,10 +90,10 @@ function CompanyCard({ co }: { co: CompanyOverview }) {
       </p>
 
       <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <MetricCell label="Mkt Cap"    value={fmtMetric(metrics.market_cap, "$", "", true)} />
+        <MetricCell label="Mkt Cap"    value={fmtMetric(metrics.market_cap, sym, "", true)} />
         <MetricCell label="P/E"        value={fmtMetric(metrics.pe_ratio)} />
         <MetricCell label="Fwd P/E"    value={fmtMetric(metrics.forward_pe)} />
-        <MetricCell label="Rev TTM"    value={fmtMetric(metrics.revenue_ttm, "$", "", true)} />
+        <MetricCell label="Rev TTM"    value={fmtMetric(metrics.revenue_ttm, sym, "", true)} />
       </div>
 
       <div className="flex flex-wrap gap-1.5">
@@ -388,6 +397,7 @@ export function ReportView({ report: row }: { report: ReportRow }) {
       ...raw,
       companies: (raw.companies ?? []).map((co) => ({
         ...co,
+        currency: (co as CompanyOverview & { currency?: string }).currency ?? "USD",
         metrics: co.metrics ?? {},
       })),
       risks: ((raw.risks ?? []) as (RiskItem | string)[]).map((risk) =>
@@ -541,7 +551,11 @@ export function ReportView({ report: row }: { report: ReportRow }) {
                   <p className="mb-1 font-mono text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-faint)" }}>
                     {ticker} · Price history
                   </p>
-                  <PriceChart data={pts} ticker={ticker} />
+                  <PriceChart
+                    data={pts}
+                    ticker={ticker}
+                    currency={(r.companies.find((c) => c.ticker === ticker) as (CompanyOverview & { currency?: string }) | undefined)?.currency}
+                  />
                   <p className="mt-3 font-mono text-xs" style={{ color: "var(--text-faint)" }}>
                     Source: Yahoo Finance / Finnhub
                   </p>

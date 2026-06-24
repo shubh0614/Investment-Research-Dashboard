@@ -16,15 +16,22 @@ interface PricePoint {
 }
 
 interface PriceChartProps {
-  data: PricePoint[];
-  ticker: string;
+  data:      PricePoint[];
+  ticker:    string;
+  currency?: string;
 }
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$", EUR: "€", GBP: "£", INR: "₹", JPY: "¥",
+  HKD: "HK$", AUD: "A$", CAD: "C$", SGD: "S$", KRW: "₩",
+};
 
 function fmt(n: number) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export function PriceChart({ data, ticker }: PriceChartProps) {
+export function PriceChart({ data, ticker, currency = "USD" }: PriceChartProps) {
+  const sym = CURRENCY_SYMBOLS[currency] ?? (currency + " ");
   if (!data || data.length === 0) return null;
 
   const min = Math.min(...data.map((d) => d.close));
@@ -43,7 +50,7 @@ export function PriceChart({ data, ticker }: PriceChartProps) {
           className="font-mono text-2xl font-semibold"
           style={{ color: "var(--text)", fontVariantNumeric: "tabular-nums" }}
         >
-          ${fmt(last)}
+          {sym}{fmt(last)}
         </span>
         <span
           className="font-mono text-sm"
@@ -82,7 +89,7 @@ export function PriceChart({ data, ticker }: PriceChartProps) {
             tickLine={false}
             axisLine={false}
             tick={{ fontSize: 11, fill: "var(--text-faint)", fontFamily: "var(--font-mono)" }}
-            tickFormatter={(v: number) => `$${v.toFixed(0)}`}
+            tickFormatter={(v: number) => `${sym}${v.toFixed(0)}`}
             domain={[min * 0.97, max * 1.03]}
             width={48}
           />
@@ -97,7 +104,7 @@ export function PriceChart({ data, ticker }: PriceChartProps) {
               boxShadow: "var(--shadow-md)",
             }}
             labelStyle={{ color: "var(--text-muted)", marginBottom: 4 }}
-            formatter={(v) => [`$${fmt(Number(v))}`, ticker]}
+            formatter={(v) => [`${sym}${fmt(Number(v))}`, ticker]}
             labelFormatter={(l) => new Date(String(l)).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
           />
           <Area

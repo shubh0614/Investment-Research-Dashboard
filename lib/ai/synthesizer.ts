@@ -51,6 +51,7 @@ function buildContext(results: ExecutionResults): string {
         sections.push(
           `${ticker} (${d.name})\n` +
           `  Source: ${r.source}\n` +
+          `  Currency: ${d.currency ?? "USD"}\n` +
           `  Current price: ${d.current_price ?? "N/A"}\n` +
           `  1-day change: ${d.change_pct ?? "N/A"}%\n` +
           `  Market cap: ${d.market_cap ?? "N/A"}\n` +
