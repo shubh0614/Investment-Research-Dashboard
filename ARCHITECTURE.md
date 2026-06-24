@@ -20,7 +20,7 @@ graph TB
         SVCS["Services\nBusiness logic · org-scoped operations"]
         REPOS["Repositories\nData access via RLS-scoped Supabase client"]
         ORCH["AI Orchestrator\nPlan → Execute → Synthesize → Validate"]
-        TC["Tool Clients\nMarket data · News · KB Retriever\nread-through query_cache on every call"]
+        TC["Tool Clients\nMarket data · News · KB Retriever · Web search\nread-through query_cache on every call"]
         GW["LLM Gateway\nVercel AI SDK v6\nProvider-agnostic: Groq / OpenAI / Anthropic\nStructured output · tool-calling · validate-repair"]
     end
 
@@ -31,8 +31,9 @@ graph TB
 
     subgraph external ["External — reached server-side only, on cache miss"]
         LLM_P["LLM Provider\nGroq (default, free) · OpenAI · Anthropic\nSwap via LLM_PROVIDER env var — zero code change"]
-        MKTAPI["Alpha Vantage\nMarket data · price series · fundamentals"]
+        MKTAPI["Finnhub + Yahoo Finance\nFundamentals · real-time quote · price candles\n(Yahoo Finance for history — no key needed)"]
         NEWSAPI["NewsAPI\nFinancial news with recency filter"]
+        WEBAPI["Tavily\nLive web search context"]
     end
 
     UI -->|"HTTPS page request"| PROXY
@@ -48,6 +49,7 @@ graph TB
     TC -->|"cache hit: served from DB"| PG
     TC -->|"cache miss: fetch then write back"| MKTAPI
     TC -->|"cache miss: fetch then write back"| NEWSAPI
+    TC -->|"cache miss: fetch then write back"| WEBAPI
     TC -->|"vector similarity + org_id filter\nRLS enforces tenant isolation"| PG
     GW -->|"model call (server-side only)"| LLM_P
 ```
@@ -79,15 +81,15 @@ sequenceDiagram
     RH ->> O:  runOrchestrator({ query, supabase })
 
     Note over O,PL: Step 1 — Plan
-    O  ->> PL: "Which tools does this query need?"<br/>tool definitions: market, news, knowledge_base
-    PL -->> O: tool calls: [get_market_data(NVDA,90d), search_news(NVIDIA,30), search_knowledge_base(NVIDIA)]
+    O  ->> PL: "Which tools does this query need?"<br/>tool definitions: market, news, knowledge_base, web
+    PL -->> O: tool calls: [get_market_data(NVDA,90d), search_news(NVIDIA,30), search_knowledge_base(NVIDIA), search_web(NVIDIA)]
 
     Note over O,KB: Step 2 — Execute (independent tools run in parallel)
     par Market data
         O  ->> EX: run get_market_data
         EX ->> CA: lookup market:NVDA:90d
         CA -->> EX: cache HIT → return payload
-        EX -->> O:  MarketResult { data, source: "Alpha Vantage" }
+        EX -->> O:  MarketResult { data, source: "Finnhub" }
     and News
         O  ->> EX: run search_news
         EX ->> CA: lookup news:NVIDIA:30
@@ -102,6 +104,14 @@ sequenceDiagram
         KB ->> PG: SELECT chunks ORDER BY embedding <-> $vec<br/>WHERE org_id = current_org_id()   ← RLS
         PG -->> KB: chunks for this org only
         KB -->> O:  KBResult { chunks[], sources[] }
+    and Web search
+        O  ->> EX: run search_web
+        EX ->> CA: lookup web:NVIDIA
+        CA -->> EX: cache MISS
+        EX ->> WB: fetch Tavily API
+        WB -->> EX: web results
+        EX ->> CA: write web:NVIDIA
+        EX -->> O:  WebResult { results[], sources[] }
     end
 
     Note over O,SY: Step 3 — Synthesize
@@ -230,7 +240,7 @@ flowchart TD
     Q --> PL
 
     subgraph S1 ["Step 1 — Plan  (model decides)"]
-        PL["Planner  LLM call\nInput:  query + 3 tool definitions\nOutput: which tools + args\nPrompt explicitly forbids hardcoded sequences"]
+        PL["Planner  LLM call\nInput:  query + 4 tool definitions\nOutput: which tools + args\nPrompt explicitly forbids hardcoded sequences"]
     end
 
     PL --> GATE{Any tools\nselected?}
@@ -239,15 +249,17 @@ flowchart TD
 
     subgraph S2 ["Step 2 — Execute  (parallel where independent)"]
         EX["Executor\nFan out selected tools concurrently\nPromise.all — each fails safely"]
-        EX --> T1["get_market_data\nquery_cache → Alpha Vantage\nReturns: prices, metrics, price_series"]
+        EX --> T1["get_market_data\nquery_cache → Finnhub (quote, profile, metrics)\n+ Yahoo Finance (price candles)\nReturns: prices, metrics, price_series"]
         EX --> T2["search_news\nquery_cache → NewsAPI\nReturns: articles + LLM sentiment classification"]
         EX --> T3["search_knowledge_base\npgvector similarity search\nRLS: only this org's chunks returned"]
+        EX --> T4["search_web\nquery_cache → Tavily\nReturns: live web results + sources"]
         T1 --> FAIL1["Failure → typed 'unavailable' result\nNever throws — report degrades, not crashes"]
         T2 --> FAIL2["Failure → typed 'unavailable' result"]
         T3 --> FAIL3["Failure → typed 'unavailable' result"]
+        T4 --> FAIL4["Failure → typed 'unavailable' result"]
     end
 
-    FAIL1 & FAIL2 & FAIL3 --> AGG["Aggregate ToolResults\nAll results typed — unavailable sections\nget an explicit degraded state in the UI"]
+    FAIL1 & FAIL2 & FAIL3 & FAIL4 --> AGG["Aggregate ToolResults\nAll results typed — unavailable sections\nget an explicit degraded state in the UI"]
 
     subgraph S3 ["Step 3 — Synthesize"]
         AGG --> SY["Synthesizer  LLM call\nInput:  query + all tool results\nOutput: ResearchReport JSON\nPrompt: attribute every claim, never invent a source"]
@@ -321,6 +333,7 @@ All endpoints return `{ ok: true, data }` on success or `{ ok: false, error: { c
 | `POST` | `/api/org/invite` | session | admin | 200, 401, 403 | Return (or generate) the org's invite code. |
 | `GET` | `/api/org/members` | session | admin | 200, 401, 403 | List all members of the org. |
 | `DELETE` | `/api/org/members/:id` | session | admin | 200, 400, 401, 403, 404 | Remove a member. Cannot remove self. RLS also blocks self-removal at DB tier. |
+| `GET` | `/api/market-prices` | session | any | 200, 400, 401 | Live prices, 1D change %, and 30D sparkline series for comma-separated `?tickers=`. Results cached 24h. |
 | `GET` | `/api/watchlist` | session | any | 200, 401 | List the caller's watchlist items. |
 | `POST` | `/api/watchlist` | session | any | 201, 400, 401, 409, 422 | Add a ticker to the watchlist. 409 on duplicate. |
 | `DELETE` | `/api/watchlist/:id` | session | any | 200, 401, 404 | Remove a watchlist item. |

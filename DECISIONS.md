@@ -68,7 +68,7 @@ The services layer also scopes every query by `org_id`, and any id taken from a 
 
 The orchestration has four steps:
 
-1. **Plan.** The model receives the user's query and three tool definitions (`get_market_data`, `search_news`, `search_knowledge_base`). It decides which tools to call and with what arguments. A news-only question never invokes the market API; a multi-company comparison selects multiple tickers. This is not a keyword routing rule — the model makes the decision.
+1. **Plan.** The model receives the user's query and four tool definitions (`get_market_data`, `search_news`, `search_knowledge_base`, `search_web`). It decides which tools to call and with what arguments. A news-only question never invokes the market API; a multi-company comparison selects multiple tickers. This is not a keyword routing rule — the model makes the decision.
 
 2. **Execute.** Selected tools run; independent tools run in parallel (`Promise.all`). Each tool client wraps its call in a timeout and a single bounded retry. On failure, the tool returns a typed `unavailable` result rather than throwing — a failed tool degrades one section of the report, never the whole request.
 
@@ -115,7 +115,7 @@ In priority order:
 
 4. **SSE streaming.** Stream the plan and each synthesis section as it completes, rather than blocking on the full report. The synchronous path is already correct; streaming layers on top of it without changing the orchestrator.
 
-5. **Live deploy + CI/CD.** B1 is the highest-value bonus — a working URL in the README turns a local project into a shippable product. A GitHub Actions pipeline (lint → tsc → isolation test → build) would give continuous assurance that the isolation guarantees hold on every push.
+5. **Live deploy.** A working URL in the README turns a local project into a shippable product. CI/CD is already shipped (`.github/workflows/ci.yml` runs lint → tsc → test → build on every push); what remains is deploying to a hosted platform (Vercel, Railway, or AWS).
 
 ---
 

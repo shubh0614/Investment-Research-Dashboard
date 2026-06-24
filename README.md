@@ -28,7 +28,7 @@ Option A's hardest problem — multi-tenant data isolation over a vector knowled
 
 ## Features
 
-- **Agentic research** — model selects which data tools to call from the query (market data, news, knowledge base); independent tools run in parallel
+- **Agentic research** — model selects which data tools to call from the query (market data, news, knowledge base, web search); independent tools run in parallel
 - **Structured reports** — company cards, price chart (Recharts), comparison tables, sentiment-badged news, risk section; every datum carries a source chip
 - **Source attribution** — enforced by a Zod schema: no factual field may have an empty `sources` array
 - **Multi-tenant isolation** — RLS policies enforce `org_id` at the Postgres tier; a cross-tenant guessed ID returns 0 rows, not an application-layer check
@@ -147,7 +147,7 @@ scripts/
 
 | Script | What it does |
 |---|---|
-| `npm run dev` | Start Next.js dev server (Turbopack) |
+| `npm run dev` | Start Next.js dev server (webpack) |
 | `npm run build` | Production build |
 | `npm run db:start` | Start local Supabase via Docker |
 | `npm run db:stop` | Stop local Supabase |
