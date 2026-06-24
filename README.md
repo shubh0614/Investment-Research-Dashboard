@@ -158,6 +158,14 @@ scripts/
 
 ---
 
+## Evaluator Test Guide
+
+A step-by-step test script covering all rubric areas (auth, AI pipeline, multi-tenancy, RBAC, watchlist, export, error handling) with exact queries to run and expected outputs:
+
+**[TEST.md — Evaluator Test Guide](TEST.md)**
+
+---
+
 ## Demo Video
 
 A full walkthrough of all three demo workflows is available here:
