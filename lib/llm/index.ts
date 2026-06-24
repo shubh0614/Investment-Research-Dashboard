@@ -354,30 +354,50 @@ export async function generateWithTools(
   const { signal, clear } = makeAbortSignal(options?.timeoutMs ?? TIMEOUT_MS);
   const start = Date.now();
 
-  try {
+  const attempt = async (sig: AbortSignal) => {
     const result = await generateText({
       model:       getModel(),
       system,
       messages:    rest as ModelMessage[],
       tools,
       toolChoice:  "auto",
-      abortSignal: signal,
+      abortSignal: sig,
     });
-
-    const durationMs = Date.now() - start;
     const rawCalls = result.toolCalls ?? [];
     const calls = rawCalls.map((tc) => ({
       toolName:   tc.toolName as string,
       args:       (tc as { input: unknown }).input,
       toolCallId: tc.toolCallId,
     }));
+    return { text: result.text, toolCalls: calls, usage: result.usage };
+  };
 
-    console.log(
-      `[llm] generateWithTools ok - ${durationMs}ms, tools_selected=${calls.map((c) => c.toolName).join(",")||"none"}, tokens=${result.usage.totalTokens ?? 0}`,
-    );
-
-    return { text: result.text, toolCalls: calls, usage: result.usage, durationMs };
-
+  try {
+    try {
+      const result = await attempt(signal);
+      const durationMs = Date.now() - start;
+      console.log(
+        `[llm] generateWithTools ok - ${durationMs}ms, tools_selected=${result.toolCalls.map((c) => c.toolName).join(",")||"none"}, tokens=${result.usage.totalTokens ?? 0}`,
+      );
+      return { ...result, durationMs };
+    } catch (firstErr) {
+      // Groq/LLaMA sometimes fails tool-call JSON generation on first attempt — retry once
+      const msg = firstErr instanceof Error ? firstErr.message : String(firstErr);
+      if (!msg.includes("Failed to call a function") && !msg.includes("tool")) throw firstErr;
+      console.warn(`[llm] generateWithTools retry (first attempt: ${msg})`);
+      clear();
+      const { signal: sig2, clear: clear2 } = makeAbortSignal(options?.timeoutMs ?? TIMEOUT_MS);
+      try {
+        const result = await attempt(sig2);
+        const durationMs = Date.now() - start;
+        console.log(
+          `[llm] generateWithTools ok (retry) - ${durationMs}ms, tools_selected=${result.toolCalls.map((c) => c.toolName).join(",")||"none"}, tokens=${result.usage.totalTokens ?? 0}`,
+        );
+        return { ...result, durationMs };
+      } finally {
+        clear2();
+      }
+    }
   } catch (err) {
     throw new LLMError(
       `Tool-calling generation failed: ${err instanceof Error ? err.message : err}`,
