@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Menu, Building2 } from "lucide-react";
 import { NavSidebar } from "@/components/nav-sidebar";
 import { CommandPalette } from "@/components/command-palette";
@@ -18,11 +18,10 @@ const COLLAPSED_KEY = "klypup-sidebar-collapsed";
 
 export function LayoutShell({ profile, org, children }: LayoutShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed,  setCollapsed]  = useState(false);
-
-  useEffect(() => {
-    try { setCollapsed(localStorage.getItem(COLLAPSED_KEY) === "true"); } catch {}
-  }, []);
+  const [collapsed,  setCollapsed]  = useState(() => {
+    if (typeof window === "undefined") return false;
+    try { return localStorage.getItem(COLLAPSED_KEY) === "true"; } catch { return false; }
+  });
 
   function toggleCollapsed() {
     setCollapsed((c) => {

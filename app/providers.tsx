@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -62,13 +62,12 @@ export function ThemeScript() {
 
 /** Hook - returns current theme and a toggle function. */
 export function useTheme() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-
-  useEffect(() => {
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    if (typeof window === "undefined") return "dark";
     const stored = localStorage.getItem("klypup-theme");
     const prefer = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-    setTheme((stored as "dark" | "light") || prefer);
-  }, []);
+    return (stored as "dark" | "light") || prefer;
+  });
 
   function toggle() {
     const next = theme === "dark" ? "light" : "dark";

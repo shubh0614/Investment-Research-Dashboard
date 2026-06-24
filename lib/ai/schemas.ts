@@ -76,7 +76,7 @@ export const CompanyOverviewSchema = z.object({
   name:     z.string().default(""),
   overview: z.string().default("").describe("2–3 sentence company overview based on retrieved data"),
   metrics:  CompanyMetricsSchema.optional().default({}),
-  sources:  z.array(z.string()).default([]).describe("Data source labels for this company"),
+  sources:  z.array(z.string()).min(1).describe("Data source labels for this company"),
 });
 
 export const NewsItemSchema = z.object({
@@ -93,7 +93,7 @@ export const RiskItemSchema = z.object({
   risk:        z.string().describe("Short label for the risk"),
   rationale:   z.string().describe("1–2 sentence explanation grounded in the data"),
   severity:    z.enum(["high", "medium", "low"]),
-  sources:     z.array(z.string()),
+  sources:     z.array(z.string()).min(1),
   source_urls: z.array(z.string()).optional().default([]).describe("Article URLs backing each source, parallel to sources[]"),
 });
 
@@ -128,12 +128,12 @@ export const ReportMetaSchema = z.object({
 
 export const SynthesisOutputSchema = z.object({
   summary:      z.string().min(1).describe("2–4 sentence executive summary of the research"),
-  companies:    z.array(CompanyOverviewSchema),
+  companies:    z.array(CompanyOverviewSchema).min(1),
   comparison:   z.array(ComparisonRowSchema).optional().describe("Only present for multi-company queries"),
   price_series: z.array(PricePointSchema).optional().describe("Only present when market data was fetched"),
   news:         z.array(NewsItemSchema),
-  risks:        z.array(RiskItemSchema),
-  tools_used:   z.array(z.string()).describe("Names of tools that were called"),
+  risks:        z.array(RiskItemSchema).min(1),
+  tools_used:   z.array(z.string()).min(1).describe("Names of tools that were called"),
 });
 
 // ── ResearchReport - the full contract ───────────────────────────────────────

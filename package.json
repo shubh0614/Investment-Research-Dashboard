@@ -11,7 +11,7 @@
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
-    "seed": "node scripts/seed.mjs",
+    "seed": "node --env-file=.env.local scripts/seed.mjs",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:isolation": "node scripts/test-isolation.mjs"
