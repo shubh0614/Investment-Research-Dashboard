@@ -338,6 +338,47 @@ All endpoints return `{ ok: true, data }` on success or `{ ok: false, error: { c
 | `POST` | `/api/watchlist` | session | any | 201, 400, 401, 409, 422 | Add a ticker to the watchlist. 409 on duplicate. |
 | `DELETE` | `/api/watchlist/:id` | session | any | 200, 401, 404 | Remove a watchlist item. |
 
+### Key request / response shapes
+
+```jsonc
+// POST /api/research
+// Request
+{ "query": "Analyze NVIDIA Q3 earnings vs AMD" }
+// Response data
+{ "report": ResearchReport }   // full Zod-validated ResearchReport object
+
+// POST /api/research/save
+// Request
+{ "title": "NVIDIA Q3 Analysis", "query_text": "...", "result_json": ResearchReport, "tags": ["q3", "semiconductors"] }
+// Response data
+{ "id": "uuid" }
+
+// PATCH /api/research/:id
+// Request (all fields optional)
+{ "title": "Updated title", "tags": ["new-tag"] }
+// Response data
+{ "id": "uuid", "title": "...", "tags": [...] }
+
+// POST /api/watchlist
+// Request
+{ "ticker": "NVDA", "company_name": "NVIDIA Corporation" }
+// Response data
+{ "id": "uuid", "ticker": "NVDA", "company_name": "NVIDIA Corporation" }
+
+// POST /api/org/invite  (admin only)
+// Request: empty body
+// Response data
+{ "invite_code": "e4e17462c63a" }
+
+// GET /api/market-prices?tickers=NVDA,AMD
+// Response data
+{ "NVDA": { "price": 134.56, "change_pct": 1.2, "series": [{ "date": "2026-06-01", "close": 130.0 }, ...] } }
+
+// GET /api/research?tag=q3&q=nvidia
+// Response data
+{ "reports": [{ "id": "uuid", "title": "...", "query_text": "...", "tags": [...], "created_at": "..." }] }
+```
+
 ### Standard response envelope
 
 ```jsonc
