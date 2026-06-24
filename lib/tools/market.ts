@@ -33,19 +33,19 @@ export type MarketDataResult =
 // ── Finnhub response types ────────────────────────────────────────────────────
 
 interface FinnhubQuote {
-  c:  number;  // current price
-  d:  number;  // change
-  dp: number;  // percent change
-  h:  number;  // high of day
-  l:  number;  // low of day
-  o:  number;  // open
-  pc: number;  // previous close
+  c:  number;
+  d:  number;
+  dp: number;
+  h:  number;
+  l:  number;
+  o:  number;
+  pc: number;
 }
 
 interface FinnhubProfile {
   name:                 string;
-  marketCapitalization: number;  // millions USD
-  shareOutstanding:     number;  // millions
+  marketCapitalization: number;
+  shareOutstanding:     number;
 }
 
 interface FinnhubMetrics {
@@ -54,8 +54,19 @@ interface FinnhubMetrics {
 
 // ── Yahoo Finance response types ──────────────────────────────────────────────
 
+interface YahooMeta {
+  regularMarketPrice?:         number;
+  regularMarketChangePercent?: number;
+  regularMarketPreviousClose?: number;
+  chartPreviousClose?:         number;
+  longName?:                   string;
+  shortName?:                  string;
+  marketCap?:                  number;
+}
+
 interface YahooChartResult {
-  timestamp?: number[];
+  meta?:       YahooMeta;
+  timestamp?:  number[];
   indicators?: {
     quote?: Array<{
       open?:   (number | null)[];
@@ -74,54 +85,86 @@ const FINNHUB_URL  = "https://finnhub.io/api/v1";
 const YAHOO_URL    = "https://query1.finance.yahoo.com/v8/finance/chart";
 const CACHE_TTL_MS = 24 * 60 * 60 * 1_000;
 
-// ── Yahoo Finance candles ─────────────────────────────────────────────────────
+// ── Yahoo Finance (candles + meta) ────────────────────────────────────────────
 
-async function fetchCandlesFromYahoo(
+// Tries the ticker as-is, then with .NS (NSE India) and .BO (BSE India) suffixes
+// so Indian stocks work without the user knowing exchange codes.
+async function fetchFromYahoo(
   ticker: string,
   range: string,
-): Promise<MarketDataPoint[]> {
+): Promise<MarketDataPayload | null> {
   const rangeMap: Record<string, string> = {
     "7d": "5d", "30d": "1mo", "90d": "3mo", "1y": "1y",
   };
   const yahooRange = rangeMap[range] ?? "3mo";
 
-  let res: Response;
-  try {
-    res = await fetchWithRetry(
-      `${YAHOO_URL}/${encodeURIComponent(ticker)}?interval=1d&range=${yahooRange}`,
-      { headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/json" } },
-    );
-  } catch {
-    return [];
+  // Suffix order: bare ticker first (works for US), then Indian exchanges
+  const suffixes = ["", ".NS", ".BO"];
+
+  for (const suffix of suffixes) {
+    const symbol = ticker.toUpperCase() + suffix;
+    try {
+      const res = await fetchWithRetry(
+        `${YAHOO_URL}/${encodeURIComponent(symbol)}?interval=1d&range=${yahooRange}`,
+        { headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/json" } },
+      );
+      if (!res.ok) continue;
+
+      const json = (await res.json()) as {
+        chart?: { result?: YahooChartResult[]; error?: { code: string } };
+      };
+      if (json?.chart?.error || !json?.chart?.result?.[0]) continue;
+
+      const result = json.chart.result[0];
+      const meta   = result.meta ?? {};
+      if (!meta.regularMarketPrice) continue;
+
+      const q          = result.indicators?.quote?.[0] ?? {};
+      const timestamps = result.timestamp ?? [];
+      const closes     = q.close  ?? [];
+      const opens      = q.open   ?? [];
+      const highs      = q.high   ?? [];
+      const lows       = q.low    ?? [];
+      const volumes    = q.volume ?? [];
+
+      const series: MarketDataPoint[] = [];
+      for (let i = 0; i < timestamps.length; i++) {
+        if (closes[i] == null) continue;
+        series.push({
+          date:   new Date(timestamps[i] * 1000).toISOString().split("T")[0],
+          open:   opens[i]   ?? closes[i]!,
+          high:   highs[i]   ?? closes[i]!,
+          low:    lows[i]    ?? closes[i]!,
+          close:  closes[i]!,
+          volume: volumes[i] ?? 0,
+        });
+      }
+
+      const current   = meta.regularMarketPrice;
+      const prevClose = meta.regularMarketPreviousClose ?? meta.chartPreviousClose ?? 0;
+      const changePct = meta.regularMarketChangePercent ??
+        (prevClose ? (current - prevClose) / prevClose * 100 : 0);
+
+      return {
+        ticker:        ticker.toUpperCase(),
+        name:          meta.longName ?? meta.shortName ?? ticker.toUpperCase(),
+        current_price: current,
+        change_pct:    parseFloat(changePct.toFixed(2)),
+        market_cap:    meta.marketCap ?? null,
+        pe_ratio:      null,
+        forward_pe:    null,
+        revenue_ttm:   null,
+        series:        series.length ? series : [{
+          date:   new Date().toISOString().split("T")[0],
+          open:   current, high: current, low: current, close: current, volume: 0,
+        }],
+      };
+    } catch {
+      continue;
+    }
   }
 
-  if (!res.ok) return [];
-
-  const json = (await res.json()) as { chart?: { result?: YahooChartResult[] } };
-  const result = json?.chart?.result?.[0];
-  if (!result?.timestamp?.length) return [];
-
-  const q       = result.indicators?.quote?.[0] ?? {};
-  const timestamps = result.timestamp;
-  const closes  = q.close  ?? [];
-  const opens   = q.open   ?? [];
-  const highs   = q.high   ?? [];
-  const lows    = q.low    ?? [];
-  const volumes = q.volume ?? [];
-
-  const points: MarketDataPoint[] = [];
-  for (let i = 0; i < timestamps.length; i++) {
-    if (closes[i] == null) continue;
-    points.push({
-      date:   new Date(timestamps[i] * 1000).toISOString().split("T")[0],
-      open:   opens[i]   ?? closes[i]!,
-      high:   highs[i]   ?? closes[i]!,
-      low:    lows[i]    ?? closes[i]!,
-      close:  closes[i]!,
-      volume: volumes[i] ?? 0,
-    });
-  }
-  return points;
+  return null;
 }
 
 // ── Finnhub quote + profile + metrics ────────────────────────────────────────
@@ -135,12 +178,11 @@ async function fetchFromFinnhub(
 
   const symbol = ticker.toUpperCase();
 
-  // Run Finnhub (quote/profile/metrics) and Yahoo Finance (candles) in parallel
   const [quoteRes, profileRes, metricsRes, series] = await Promise.all([
     fetchWithRetry(`${FINNHUB_URL}/quote?symbol=${symbol}&token=${apiKey}`),
     fetchWithRetry(`${FINNHUB_URL}/stock/profile2?symbol=${symbol}&token=${apiKey}`),
     fetchWithRetry(`${FINNHUB_URL}/stock/metric?symbol=${symbol}&metric=all&token=${apiKey}`),
-    fetchCandlesFromYahoo(symbol, range),
+    fetchFromYahoo(symbol, range),
   ]);
 
   for (const [name, res] of [["quote", quoteRes], ["profile", profileRes], ["metrics", metricsRes]] as const) {
@@ -155,11 +197,15 @@ async function fetchFromFinnhub(
     metricsRes.json() as Promise<FinnhubMetrics>,
   ]);
 
-  if (!quote.c) throw new Error(`Finnhub: no price data for ${symbol}`);
+  // Finnhub has no data for this ticker (non-US or delisted) — reuse the Yahoo
+  // result already fetched in parallel (avoids a second round-trip)
+  if (!quote.c) {
+    if (series) return series;
+    throw new Error(`No price data available for ${symbol}`);
+  }
 
-  // If Yahoo had no history (e.g. very new ticker), fall back to a single quote point
-  const priceSeries: MarketDataPoint[] = series.length
-    ? series
+  const priceSeries: MarketDataPoint[] = series?.series?.length
+    ? series.series
     : [{
         date:   new Date().toISOString().split("T")[0],
         open:   quote.o  ?? quote.pc ?? quote.c,

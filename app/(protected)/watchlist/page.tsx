@@ -157,12 +157,12 @@ export default function WatchlistPage() {
 
       {!isLoading && items.length > 0 && (
         <div className="overflow-x-auto rounded-lg stagger" style={{ border: "1px solid var(--border)" }}>
-          <div style={{ minWidth: 600 }}>
+          <div style={{ minWidth: 640 }}>
           {/* Table header */}
           <div
             className="grid items-center px-4 py-2"
             style={{
-              gridTemplateColumns: "3.5rem 1fr 5rem 5.5rem 5rem 13rem",
+              gridTemplateColumns: "5.5rem 1fr 5rem 5.5rem 5rem 13rem",
               background: "var(--surface-2)",
               borderBottom: "1px solid var(--border)",
             }}
@@ -184,7 +184,7 @@ export default function WatchlistPage() {
                 key={item.id}
                 className="grid items-center px-4 py-3"
                 style={{
-                  gridTemplateColumns: "3.5rem 1fr 5rem 5.5rem 5rem 13rem",
+                  gridTemplateColumns: "5.5rem 1fr 5rem 5.5rem 5rem 13rem",
                   background: "var(--surface-1)",
                   borderTop: i > 0 ? "1px solid var(--border)" : undefined,
                   transition: "background 100ms",
@@ -194,7 +194,7 @@ export default function WatchlistPage() {
               >
                 {/* Ticker */}
                 <span
-                  className="font-mono text-sm font-semibold"
+                  className="truncate font-mono text-sm font-semibold"
                   style={{ color: "var(--accent)", fontVariantNumeric: "tabular-nums" }}
                 >
                   {item.ticker}
