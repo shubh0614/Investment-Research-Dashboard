@@ -294,9 +294,11 @@ Do NOT wrap the response in any outer key. Output ONLY the JSON object.`,
       const errMsg = firstErr instanceof Error ? firstErr.message : String(firstErr);
       console.warn(`[llm] generateObject first attempt failed (${errMsg}) - attempting repair`);
 
+      // Groq json_object mode requires every assistant message to be valid JSON.
+      // A plain-text assistant message causes "unsupported content fields", so
+      // the repair pass uses only a user message — no assistant turn.
       const repairMessages: ModelMessage[] = [
-        { role: "assistant", content: `My previous response had wrong field names. I must use the exact schema.` },
-        { role: "user",      content: `Return ONLY a valid JSON object. Required fields:\n- summary: non-empty string\n- companies: array (each item needs: ticker, name, overview, metrics{current_price,price_change_1d,market_cap,pe_ratio,forward_pe,revenue_ttm - all nullable}, sources[])\n- news: array (each item needs: headline, summary, sentiment, confidence, published_at, source, url)\n- risks: array (each item needs: risk, rationale, severity[high|medium|low], sources[])\n- tools_used: array of strings\nUse [] for empty arrays. Do not rename any field.` },
+        { role: "user", content: `Your previous response was not valid JSON or had wrong field names. Return ONLY a valid JSON object with NO extra text. Required fields:\n- summary: non-empty string\n- companies: array (each item: ticker, name, overview, metrics{current_price,price_change_1d,market_cap,pe_ratio,forward_pe,revenue_ttm - all nullable}, sources[])\n- news: array (each item: headline, summary, sentiment, confidence, published_at, source, url)\n- risks: array (each item: risk, rationale, severity[high|medium|low], sources[], source_urls[])\n- tools_used: array of strings\nUse [] for empty arrays. Do not rename any field.` },
       ];
       const { object, usage } = await attempt(repairMessages, signal2);
 
