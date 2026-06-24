@@ -16,15 +16,11 @@ The specific draw was the intersection of pgvector and RLS. Isolating a relation
 
 **Next.js App Router as a full-stack monolith.**
 
-A note on the Python question first. My background is AI engineering - Python is my primary language, FastAPI is the stack I reach for by reflex when building anything LLM-related. The deliberate choice not to use it here is worth explaining, because it is not a gap in knowledge, it is a judgment call about where the hard problem actually lives.
+My background is AI engineering - Python is what I write every day, so FastAPI was the obvious reflex. I went with TypeScript because the hard problem here is not compute, it is keeping the AI output schema consistent all the way through. `ResearchReport` is defined once in `lib/ai/schemas.ts`, Zod validates it at the API boundary, and the same type flows into every UI component. A Python backend means that contract crosses a language boundary, and that is exactly where AI integrations silently break - the seam between what the model returns and the code that renders it.
 
-For Option A, the hard problem is multi-tenant data isolation over a shared knowledge base and a correctly typed AI output pipeline, not heavy ML compute. A Python backend buys you nothing in that problem space. What it costs is a network boundary, two type systems that have to agree on the shape of `ResearchReport` - the exact seam where AI integrations break - and a second deployed service with no justification for the scope. The Vercel AI SDK normalises tool-calling and structured output across Groq, OpenAI, and Anthropic behind one interface. There is no Python AI ecosystem advantage to chase here; the model calls are three lines regardless of the language they run in. The interesting engineering is in the data tier and the type contract, both of which are better served by a monolith.
+The actual model calls are three lines of SDK regardless of language. There is no Python ecosystem advantage to capture here. Option B with five agents and heavy inter-process orchestration would have been a different story.
 
-If this were Option B (five specialised agents doing heavy compute, inter-agent messaging, a pricing recommendation pipeline), Python would have been the right call. It was not here.
-
-The key advantage of the monolith is that the `ResearchReport` type is defined once in `lib/ai/schemas.ts` and used at every layer - Zod validates the model output at the API boundary before the frontend ever sees it. A separate backend would have meant maintaining that contract in two places, which is exactly how AI integrations develop silent bugs.
-
-The other reason is deployment. One service, one deploy, no CORS surface, no cross-service session plumbing.
+One service also means one deploy, no CORS, no cross-service session plumbing.
 
 **Supabase for auth, database, and vector store.**
 The honest reason is risk reduction, not feature count. Auth from scratch is a security risk. A separate vector database (Pinecone, Chroma) would mean implementing tenant isolation twice and keeping two stores consistent - which is how you get subtle cross-tenant leaks in the retrieval path that are hard to test. Putting everything in Postgres means one isolation mechanism covers everything.
