@@ -158,6 +158,14 @@ scripts/
 
 ---
 
+## Live Demo
+
+**[https://klypup-research.vercel.app](https://klypup-research.vercel.app)**
+
+Demo credentials: `alice@alpha.test` / `password123`
+
+---
+
 ## Evaluator Test Guide
 
 A step-by-step test script covering all rubric areas (auth, AI pipeline, multi-tenancy, RBAC, watchlist, export, error handling) with exact queries to run and expected outputs:
