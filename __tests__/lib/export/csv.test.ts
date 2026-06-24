@@ -5,11 +5,12 @@ import type { ResearchReport } from "@/lib/ai/schemas";
 const REPORT: ResearchReport = {
   summary: "Test summary for Apple Inc.",
   companies: [{
-    ticker: "AAPL",
-    name:   "Apple Inc.",
+    ticker:   "AAPL",
+    name:     "Apple Inc.",
     overview: "Consumer electronics company.",
-    metrics: { current_price: 175.5, price_change_1d: 0.75, market_cap: 2.8e12, pe_ratio: 29, forward_pe: 26, revenue_ttm: 4.1e11 },
-    sources: ["market-data"],
+    currency: "USD",
+    metrics:  { current_price: 175.5, price_change_1d: 0.75, market_cap: 2.8e12, pe_ratio: 29, forward_pe: 26, revenue_ttm: 4.1e11 },
+    sources:  ["market-data"],
   }],
   news: [{
     headline:     "Apple posts record revenue",
