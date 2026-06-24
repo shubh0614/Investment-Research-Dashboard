@@ -18,6 +18,20 @@ import { generateStructuredOutput } from "@/lib/llm";
 import type { MarketDataPayload } from "@/lib/tools/market";
 import type { KBChunk } from "@/lib/tools/kb";
 
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+// Groq's API rejects messages that contain non-ASCII characters outside ISO-8859-1.
+// Replace common Unicode punctuation with ASCII equivalents then strip anything left.
+function sanitize(text: string): string {
+  return text
+    .replace(/[‘’ʼ]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—―]/g, "-")
+    .replace(/…/g, "...")
+    .replace(/ /g, " ")
+    .replace(/[^\x00-\x7F]/g, " ");
+}
+
 // ── Context builder ────────────────────────────────────────────────────────────
 
 function buildContext(results: ExecutionResults): string {
@@ -57,8 +71,8 @@ function buildContext(results: ExecutionResults): string {
     sections.push(`Source: ${results.news.result.source}`);
     for (const a of payload.articles) {
       sections.push(
-        `- "${a.headline}" (${a.source}, ${a.published_at})\n` +
-        `  ${a.summary || "(no description)"}\n` +
+        `- "${sanitize(a.headline)}" (${a.source}, ${a.published_at})\n` +
+        `  ${sanitize(a.summary || "(no description)")}\n` +
         `  URL: ${a.url}`,
       );
     }
@@ -72,7 +86,7 @@ function buildContext(results: ExecutionResults): string {
     sections.push(`\n=== KNOWLEDGE BASE (${results.kb.result.retrieval_method} retrieval) ===`);
     for (const chunk of chunks) {
       sections.push(
-        `[${chunk.doc_title} / ${chunk.source_label}]\n${chunk.content}`,
+        `[${chunk.doc_title} / ${chunk.source_label}]\n${sanitize(chunk.content)}`,
       );
     }
   } else if (results.kb && !results.kb.ok) {
@@ -86,8 +100,8 @@ function buildContext(results: ExecutionResults): string {
     sections.push(`Source: ${results.web.result.source}`);
     for (const r of payload.results) {
       sections.push(
-        `- "${r.title}" (${r.source}${r.published_date ? ", " + r.published_date : ""})\n` +
-        `  ${r.content.slice(0, 400)}\n` +
+        `- "${sanitize(r.title)}" (${r.source}${r.published_date ? ", " + r.published_date : ""})\n` +
+        `  ${sanitize(r.content.slice(0, 400))}\n` +
         `  URL: ${r.url}`,
       );
     }
