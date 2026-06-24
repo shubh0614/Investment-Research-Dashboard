@@ -382,18 +382,23 @@ export function ReportView({ report: row }: { report: ReportRow }) {
 
   // Normalize legacy seed data: old format used key_metrics on companies and
   // stored risks as a plain string[] instead of RiskItem[].
-  const r: ResearchReport = {
-    ...raw,
-    companies: (raw.companies ?? []).map((co) => ({
-      ...co,
-      metrics: co.metrics ?? {},
-    })),
-    risks: ((raw.risks ?? []) as (RiskItem | string)[]).map((risk) =>
-      typeof risk === "string"
-        ? { risk, rationale: "", severity: "medium" as const, sources: [], source_urls: [] }
-        : risk
-    ),
-  };
+  let r: ResearchReport;
+  try {
+    r = {
+      ...raw,
+      companies: (raw.companies ?? []).map((co) => ({
+        ...co,
+        metrics: co.metrics ?? {},
+      })),
+      risks: ((raw.risks ?? []) as (RiskItem | string)[]).map((risk) =>
+        typeof risk === "string"
+          ? { risk, rationale: "", severity: "medium" as const, sources: [], source_urls: [] }
+          : risk
+      ),
+    };
+  } catch {
+    throw new Error("Report data is in an unrecognized format and could not be rendered.");
+  }
 
   const seriesByTicker: Record<string, { date: string; close: number }[]> = {};
   for (const pt of r.price_series ?? []) {
