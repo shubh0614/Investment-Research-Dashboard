@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/repositories/profiles";
 import Link from "next/link";
-import { ArrowRight, Clock, Bookmark } from "lucide-react";
+import { ArrowRight, Clock, Bookmark, TrendingUp, TrendingDown } from "lucide-react";
 import { listReports } from "@/lib/services/research";
 import { getWatchlist } from "@/lib/services/watchlist";
 import { getOrganization } from "@/lib/repositories/organizations";
+import { getMarketData } from "@/lib/tools/market";
 import { QuickSearch } from "./quick-search";
 
 function formatDate(iso: string) {
@@ -23,6 +24,11 @@ export default async function DashboardPage() {
     listReports(supabase, profile.org_id, { limit: 5 }),
     getWatchlist(supabase, profile.org_id, user!.id),
   ]);
+
+  const tickers = watchlistItems.map((i) => i.ticker).slice(0, 8);
+  const priceResults = tickers.length > 0
+    ? await getMarketData(tickers, "30d", supabase)
+    : {} as Awaited<ReturnType<typeof getMarketData>>;
 
   const reports     = reportsResult.reports;
   const total       = reportsResult.total;
@@ -144,7 +150,11 @@ export default async function DashboardPage() {
                 <span className="font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-faint)" }}>Name</span>
                 <span className="text-right font-mono text-xs uppercase tracking-wider" style={{ color: "var(--text-faint)" }}>Δ 1D</span>
               </div>
-              {watchlistItems.slice(0, 8).map((item, i) => (
+              {watchlistItems.slice(0, 8).map((item, i) => {
+                const pr = priceResults[item.ticker];
+                const pOk = pr?.ok ? pr : null;
+                const up = pOk ? pOk.data.change_pct >= 0 : null;
+                return (
                 <Link
                   key={item.id}
                   href={`/research/new?q=${encodeURIComponent(`Give me an overview of ${item.ticker}`)}`}
@@ -163,9 +173,20 @@ export default async function DashboardPage() {
                     {item.ticker}
                   </span>
                   <span className="truncate text-xs" style={{ color: "var(--text-muted)" }}>{item.company_name}</span>
-                  <span className="text-right font-mono text-xs" style={{ color: "var(--text-faint)" }}>-</span>
+                  <span
+                    className="flex items-center justify-end gap-0.5 font-mono text-xs"
+                    style={{ color: up === null ? "var(--text-faint)" : up ? "var(--pos)" : "var(--neg)", fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {pOk ? (
+                      <>
+                        {up ? <TrendingUp size={9} strokeWidth={1.5} /> : <TrendingDown size={9} strokeWidth={1.5} />}
+                        {up ? "+" : ""}{pOk.data.change_pct.toFixed(2)}%
+                      </>
+                    ) : "-"}
+                  </span>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
