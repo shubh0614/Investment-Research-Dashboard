@@ -18,9 +18,12 @@ export const GetMarketDataArgsSchema = z.object({
     .max(5)
     .describe("Stock ticker symbols, e.g. ['NVDA', 'AMD']"),
   range: z
-    .enum(["7d", "30d", "90d", "1y"])
+    .enum(["7d", "30d", "90d", "6mo", "1y"])
     .default("90d")
-    .describe("Historical price range"),
+    .describe(
+      "Historical price range. Use '90d' for 1 quarter, '6mo' for 2 quarters, '1y' for 3-4 quarters or a full year. " +
+      "Map user intent: 'last quarter'→'90d', '2 quarters'→'6mo', '3 quarters' or 'last year'→'1y'.",
+    ),
 });
 
 export const SearchNewsArgsSchema = z.object({

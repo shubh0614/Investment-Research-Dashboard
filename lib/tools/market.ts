@@ -94,7 +94,7 @@ async function fetchFromYahoo(
   range: string,
 ): Promise<MarketDataPayload | null> {
   const rangeMap: Record<string, string> = {
-    "7d": "5d", "30d": "1mo", "90d": "3mo", "1y": "1y",
+    "7d": "5d", "30d": "1mo", "90d": "3mo", "6mo": "6mo", "1y": "1y",
   };
   const yahooRange = rangeMap[range] ?? "3mo";
 
