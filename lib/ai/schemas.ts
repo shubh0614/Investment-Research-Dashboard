@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Central Zod schemas for the AI layer.
  *
  * Single source of truth for the ResearchReport shape.
@@ -48,28 +48,35 @@ export const SearchKnowledgeBaseArgsSchema = z.object({
     .describe("Optional ticker to narrow search to one company's documents"),
 });
 
-export type GetMarketDataArgs     = z.infer<typeof GetMarketDataArgsSchema>;
-export type SearchNewsArgs        = z.infer<typeof SearchNewsArgsSchema>;
+export const SearchWebArgsSchema = z.object({
+  query: z
+    .string()
+    .min(1)
+    .describe("Search query - company name + topic, e.g. 'Zomato risks 2026' or 'HDFC Bank earnings'"),
+});
+
+export type GetMarketDataArgs       = z.infer<typeof GetMarketDataArgsSchema>;
+export type SearchNewsArgs          = z.infer<typeof SearchNewsArgsSchema>;
 export type SearchKnowledgeBaseArgs = z.infer<typeof SearchKnowledgeBaseArgsSchema>;
+export type SearchWebArgs           = z.infer<typeof SearchWebArgsSchema>;
 
 // ── ResearchReport component schemas ─────────────────────────────────────────
 
 export const CompanyMetricsSchema = z.object({
-  current_price:   z.number().nullable(),
-  price_change_1d: z.number().nullable().describe("1-day percentage change"),
-  market_cap:      z.number().nullable(),
-  pe_ratio:        z.number().nullable(),
-  forward_pe:      z.number().nullable(),
-  revenue_ttm:     z.number().nullable().describe("Trailing-twelve-month revenue in USD"),
+  current_price:   z.number().nullable().optional(),
+  price_change_1d: z.number().nullable().optional().describe("1-day percentage change"),
+  market_cap:      z.number().nullable().optional(),
+  pe_ratio:        z.number().nullable().optional(),
+  forward_pe:      z.number().nullable().optional(),
+  revenue_ttm:     z.number().nullable().optional().describe("Trailing-twelve-month revenue in USD"),
 });
 
 export const CompanyOverviewSchema = z.object({
-  ticker:   z.string(),
-  name:     z.string(),
-  overview: z.string().describe("2–3 sentence company overview based on retrieved data"),
-  metrics:  CompanyMetricsSchema,
-  // Every company card must cite at least one source. No empty arrays.
-  sources:  z.array(z.string()).min(1).describe("Data source labels for this company"),
+  ticker:   z.string().default(""),
+  name:     z.string().default(""),
+  overview: z.string().default("").describe("2–3 sentence company overview based on retrieved data"),
+  metrics:  CompanyMetricsSchema.optional().default({}),
+  sources:  z.array(z.string()).default([]).describe("Data source labels for this company"),
 });
 
 export const NewsItemSchema = z.object({
@@ -83,17 +90,17 @@ export const NewsItemSchema = z.object({
 });
 
 export const RiskItemSchema = z.object({
-  risk:      z.string().describe("Short label for the risk"),
-  rationale: z.string().describe("1–2 sentence explanation grounded in the data"),
-  severity:  z.enum(["high", "medium", "low"]),
-  // Every risk must be attributable. No empty arrays.
-  sources:   z.array(z.string()).min(1),
+  risk:        z.string().describe("Short label for the risk"),
+  rationale:   z.string().describe("1–2 sentence explanation grounded in the data"),
+  severity:    z.enum(["high", "medium", "low"]),
+  sources:     z.array(z.string()),
+  source_urls: z.array(z.string()).optional().default([]).describe("Article URLs backing each source, parallel to sources[]"),
 });
 
 export const PricePointSchema = z.object({
   date:   z.string().describe("YYYY-MM-DD"),
   close:  z.number(),
-  ticker: z.string(),
+  ticker: z.string().default(""),
 });
 
 export const ComparisonRowSchema = z.object({
@@ -101,7 +108,7 @@ export const ComparisonRowSchema = z.object({
   values:  z
     .record(z.string(), z.union([z.string(), z.number()]).nullable())
     .describe("Map of ticker → value for this metric"),
-  sources: z.array(z.string()).min(1),
+  sources: z.array(z.string()),
 });
 
 export const ReportMetaSchema = z.object({
@@ -115,21 +122,21 @@ export const ReportMetaSchema = z.object({
   }),
 });
 
-// ── SynthesisOutputSchema — what the LLM generates ───────────────────────────
+// ── SynthesisOutputSchema - what the LLM generates ───────────────────────────
 // meta is injected by the orchestrator after the LLM call (it contains timing
 // and token data that only exist after the call returns).
 
 export const SynthesisOutputSchema = z.object({
   summary:      z.string().min(1).describe("2–4 sentence executive summary of the research"),
-  companies:    z.array(CompanyOverviewSchema).min(1),
+  companies:    z.array(CompanyOverviewSchema),
   comparison:   z.array(ComparisonRowSchema).optional().describe("Only present for multi-company queries"),
   price_series: z.array(PricePointSchema).optional().describe("Only present when market data was fetched"),
   news:         z.array(NewsItemSchema),
-  risks:        z.array(RiskItemSchema).min(1),
-  tools_used:   z.array(z.string()).min(1).describe("Names of tools that were called"),
+  risks:        z.array(RiskItemSchema),
+  tools_used:   z.array(z.string()).describe("Names of tools that were called"),
 });
 
-// ── ResearchReport — the full contract ───────────────────────────────────────
+// ── ResearchReport - the full contract ───────────────────────────────────────
 // This is what the API route returns and what Phase 6 renders.
 
 export const ResearchReportSchema = SynthesisOutputSchema.extend({

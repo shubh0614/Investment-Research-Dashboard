@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/repositories/profiles";
 import { getOrganization } from "@/lib/repositories/organizations";
@@ -17,7 +17,7 @@ export async function GET() {
   const profile = await getProfile(supabase, user.id);
   if (!profile) {
     return NextResponse.json(
-      { ok: false, error: { code: "PROFILE_NOT_FOUND", message: "Profile not found — complete onboarding first" } },
+      { ok: false, error: { code: "PROFILE_NOT_FOUND", message: "Profile not found - complete onboarding first" } },
       { status: 404 }
     );
   }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Users, Trash2 } from "lucide-react";
@@ -41,7 +41,7 @@ export function MembersTableClient({ initialMembers, currentUserId }: Props) {
     return (
       <div
         className="flex h-32 items-center justify-center rounded-xl border"
-        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+        style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
       >
         <div className="text-center">
           <Users size={22} strokeWidth={1.5} className="mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
@@ -54,7 +54,7 @@ export function MembersTableClient({ initialMembers, currentUserId }: Props) {
   return (
     <div
       className="overflow-hidden rounded-xl border"
-      style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+      style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
     >
       {/* Header */}
       <div
@@ -78,7 +78,7 @@ export function MembersTableClient({ initialMembers, currentUserId }: Props) {
               className="flex items-center justify-between px-5 py-3"
               style={{
                 borderTop: i > 0 ? "1px solid var(--border)" : undefined,
-                background: "color-mix(in srgb, var(--negative) 5%, transparent)",
+                background: "color-mix(in srgb, var(--neg) 5%, transparent)",
               }}
             >
               <p className="text-sm" style={{ color: "var(--text-muted)" }}>
@@ -89,9 +89,9 @@ export function MembersTableClient({ initialMembers, currentUserId }: Props) {
                   onClick={() => handleRemove(m.id)}
                   disabled={isRemoving}
                   className="text-xs font-medium"
-                  style={{ color: "var(--negative)", background: "none", border: "none", cursor: "pointer", opacity: isRemoving ? 0.5 : 1 }}
+                  style={{ color: "var(--neg)", background: "none", border: "none", cursor: "pointer", opacity: isRemoving ? 0.5 : 1 }}
                 >
-                  {isRemoving ? "Removing…" : "Remove"}
+                  {isRemoving ? "Removing" : "Remove"}
                 </button>
                 <span style={{ color: "var(--border)" }}>·</span>
                 <button
@@ -143,7 +143,7 @@ export function MembersTableClient({ initialMembers, currentUserId }: Props) {
               {new Date(m.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
             </span>
 
-            {/* Remove button — hidden for self */}
+            {/* Remove button - hidden for self */}
             <div className="flex justify-end">
               {!isSelf && (
                 <button

@@ -30,16 +30,103 @@ export type MarketDataResult =
   | { ok: true;  data: MarketDataPayload; source: string; from_cache: boolean }
   | { ok: false; error: string;           source: string };
 
+// ── Finnhub response types ────────────────────────────────────────────────────
+
+interface FinnhubQuote {
+  c:  number;  // current price
+  d:  number;  // change
+  dp: number;  // percent change
+  h:  number;  // high of day
+  l:  number;  // low of day
+  o:  number;  // open
+  pc: number;  // previous close
+}
+
+interface FinnhubProfile {
+  name:                 string;
+  marketCapitalization: number;  // millions USD
+  shareOutstanding:     number;  // millions
+}
+
+interface FinnhubMetrics {
+  metric: Record<string, number | null>;
+}
+
+// ── Yahoo Finance response types ──────────────────────────────────────────────
+
+interface YahooChartResult {
+  timestamp?: number[];
+  indicators?: {
+    quote?: Array<{
+      open?:   (number | null)[];
+      high?:   (number | null)[];
+      low?:    (number | null)[];
+      close?:  (number | null)[];
+      volume?: (number | null)[];
+    }>;
+  };
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const SOURCE       = "Alpha Vantage";
-const BASE_URL     = "https://www.alphavantage.co/query";
-// Market data changes daily; cache for 24 h.
+const SOURCE       = "Finnhub";
+const FINNHUB_URL  = "https://finnhub.io/api/v1";
+const YAHOO_URL    = "https://query1.finance.yahoo.com/v8/finance/chart";
 const CACHE_TTL_MS = 24 * 60 * 60 * 1_000;
 
-// ── Upstream fetcher ──────────────────────────────────────────────────────────
+// ── Yahoo Finance candles ─────────────────────────────────────────────────────
 
-async function fetchFromAlphaVantage(
+async function fetchCandlesFromYahoo(
+  ticker: string,
+  range: string,
+): Promise<MarketDataPoint[]> {
+  const rangeMap: Record<string, string> = {
+    "7d": "5d", "30d": "1mo", "90d": "3mo", "1y": "1y",
+  };
+  const yahooRange = rangeMap[range] ?? "3mo";
+
+  let res: Response;
+  try {
+    res = await fetchWithRetry(
+      `${YAHOO_URL}/${encodeURIComponent(ticker)}?interval=1d&range=${yahooRange}`,
+      { headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/json" } },
+    );
+  } catch {
+    return [];
+  }
+
+  if (!res.ok) return [];
+
+  const json = (await res.json()) as { chart?: { result?: YahooChartResult[] } };
+  const result = json?.chart?.result?.[0];
+  if (!result?.timestamp?.length) return [];
+
+  const q       = result.indicators?.quote?.[0] ?? {};
+  const timestamps = result.timestamp;
+  const closes  = q.close  ?? [];
+  const opens   = q.open   ?? [];
+  const highs   = q.high   ?? [];
+  const lows    = q.low    ?? [];
+  const volumes = q.volume ?? [];
+
+  const points: MarketDataPoint[] = [];
+  for (let i = 0; i < timestamps.length; i++) {
+    if (closes[i] == null) continue;
+    points.push({
+      date:   new Date(timestamps[i] * 1000).toISOString().split("T")[0],
+      open:   opens[i]   ?? closes[i]!,
+      high:   highs[i]   ?? closes[i]!,
+      low:    lows[i]    ?? closes[i]!,
+      close:  closes[i]!,
+      volume: volumes[i] ?? 0,
+    });
+  }
+  return points;
+}
+
+// ── Finnhub quote + profile + metrics ────────────────────────────────────────
+
+async function fetchFromFinnhub(
   ticker: string,
   range: string,
 ): Promise<MarketDataPayload> {
@@ -48,81 +135,69 @@ async function fetchFromAlphaVantage(
 
   const symbol = ticker.toUpperCase();
 
-  const [seriesRes, overviewRes] = await Promise.all([
-    fetchWithRetry(
-      `${BASE_URL}?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${symbol}&outputsize=compact&apikey=${apiKey}`,
-    ),
-    fetchWithRetry(
-      `${BASE_URL}?function=OVERVIEW&symbol=${symbol}&apikey=${apiKey}`,
-    ),
+  // Run Finnhub (quote/profile/metrics) and Yahoo Finance (candles) in parallel
+  const [quoteRes, profileRes, metricsRes, series] = await Promise.all([
+    fetchWithRetry(`${FINNHUB_URL}/quote?symbol=${symbol}&token=${apiKey}`),
+    fetchWithRetry(`${FINNHUB_URL}/stock/profile2?symbol=${symbol}&token=${apiKey}`),
+    fetchWithRetry(`${FINNHUB_URL}/stock/metric?symbol=${symbol}&metric=all&token=${apiKey}`),
+    fetchCandlesFromYahoo(symbol, range),
   ]);
 
-  if (!seriesRes.ok || !overviewRes.ok) {
-    throw new Error(`Alpha Vantage HTTP ${seriesRes.status}/${overviewRes.status}`);
+  for (const [name, res] of [["quote", quoteRes], ["profile", profileRes], ["metrics", metricsRes]] as const) {
+    if (res.status === 429) throw new Error("Finnhub rate limit reached");
+    if (res.status === 403) throw new Error("Finnhub API key invalid or unauthorized");
+    if (!res.ok)            throw new Error(`Finnhub ${name} HTTP ${res.status}`);
   }
 
-  const [seriesJson, overviewJson] = await Promise.all([
-    seriesRes.json() as Promise<Record<string, unknown>>,
-    overviewRes.json() as Promise<Record<string, string>>,
+  const [quote, profile, metricsData] = await Promise.all([
+    quoteRes.json()   as Promise<FinnhubQuote>,
+    profileRes.json() as Promise<FinnhubProfile>,
+    metricsRes.json() as Promise<FinnhubMetrics>,
   ]);
 
-  // Alpha Vantage signals errors in the body even on HTTP 200
-  const seriesErr = (seriesJson["Error Message"] ?? seriesJson["Note"]) as string | undefined;
-  if (seriesErr) throw new Error(`Alpha Vantage: ${seriesErr}`);
+  if (!quote.c) throw new Error(`Finnhub: no price data for ${symbol}`);
 
-  const daily = seriesJson["Time Series (Daily)"] as
-    | Record<string, Record<string, string>>
-    | undefined;
-  if (!daily) throw new Error("Unexpected Alpha Vantage response shape");
+  // If Yahoo had no history (e.g. very new ticker), fall back to a single quote point
+  const priceSeries: MarketDataPoint[] = series.length
+    ? series
+    : [{
+        date:   new Date().toISOString().split("T")[0],
+        open:   quote.o  ?? quote.pc ?? quote.c,
+        high:   quote.h  ?? quote.c,
+        low:    quote.l  ?? quote.c,
+        close:  quote.c,
+        volume: 0,
+      }];
 
-  const rangeDays = range === "1y" ? 365 : range === "30d" ? 30 : 90;
-  const cutoff = new Date(Date.now() - rangeDays * 24 * 60 * 60 * 1_000);
+  const m   = metricsData.metric ?? {};
+  const num = (v: unknown): number | null =>
+    typeof v === "number" && isFinite(v) && v !== 0 ? v : null;
 
-  const series: MarketDataPoint[] = Object.entries(daily)
-    .filter(([date]) => new Date(date) >= cutoff)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, d]) => ({
-      date,
-      open:   parseFloat(d["1. open"]),
-      high:   parseFloat(d["2. high"]),
-      low:    parseFloat(d["3. low"]),
-      close:  parseFloat(d["4. close"] ?? d["5. adjusted close"]),
-      volume: parseInt(d["6. volume"], 10),
-    }));
-
-  if (!series.length) throw new Error(`No price data for ${symbol}`);
-
-  const latest = series[series.length - 1];
-  const prev   = series[series.length - 2];
-  const changePct = prev
-    ? parseFloat((((latest.close - prev.close) / prev.close) * 100).toFixed(2))
-    : 0;
-
-  const num = (key: string) => {
-    const v = overviewJson[key];
-    return v && v !== "None" && v !== "-" ? parseFloat(v) : null;
-  };
+  const revenueTTM = (() => {
+    if (num(m["revenueTTM"]) != null) return m["revenueTTM"] as number;
+    const rps    = num(m["revenuePerShareTTM"]);
+    const shares = profile.shareOutstanding;
+    if (rps != null && shares) return rps * shares * 1_000_000;
+    return null;
+  })();
 
   return {
     ticker:        symbol,
-    name:          overviewJson["Name"] ?? symbol,
-    current_price: latest.close,
-    change_pct:    changePct,
-    market_cap:    num("MarketCapitalization"),
-    pe_ratio:      num("PERatio"),
-    forward_pe:    num("ForwardPE"),
-    revenue_ttm:   num("RevenueTTM"),
-    series,
+    name:          profile.name || symbol,
+    current_price: quote.c,
+    change_pct:    parseFloat((quote.dp ?? 0).toFixed(2)),
+    market_cap:    profile.marketCapitalization
+                     ? profile.marketCapitalization * 1_000_000
+                     : null,
+    pe_ratio:      num(m["peTTM"] ?? m["peBasicExclExtraTTM"] ?? m["peNormalizedAnnual"]),
+    forward_pe:    num(m["forwardPE"] ?? m["forwardPe"]),
+    revenue_ttm:   revenueTTM,
+    series:        priceSeries,
   };
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-/**
- * Fetch market data for one or more tickers, reading through the cache.
- * Independent tickers are fetched concurrently.
- * A failed ticker returns { ok: false } — it never throws.
- */
 export async function getMarketData(
   tickers: string[],
   range: string,
@@ -138,7 +213,7 @@ export async function getMarketData(
           supabase,
           key,
           CACHE_TTL_MS,
-          () => fetchFromAlphaVantage(ticker, range),
+          () => fetchFromFinnhub(ticker, range),
         );
         results[ticker] = { ok: true, data: entry.data, source: SOURCE, from_cache: entry.from_cache };
       } catch (err) {

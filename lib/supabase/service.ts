@@ -1,8 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
+﻿import { createClient } from "@supabase/supabase-js";
 import { config } from "@/lib/config";
 
 /**
- * Service-role client — bypasses RLS.
+ * Service-role client - bypasses RLS.
  * Use ONLY for the onboarding transaction and seed scripts.
  * Never use for ordinary tenant queries.
  */

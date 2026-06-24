@@ -11,8 +11,8 @@ const ICONS = {
 };
 
 const COLORS = {
-  success: "var(--positive)",
-  error:   "var(--negative)",
+  success: "var(--pos)",
+  error:   "var(--neg)",
   info:    "var(--accent)",
 };
 
@@ -42,7 +42,7 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
         padding: "12px 14px",
         borderRadius: "10px",
         border: "1px solid var(--border)",
-        background: "var(--surface)",
+        background: "var(--surface-1)",
         boxShadow: "0 8px 32px rgba(16,18,22,.28)",
         minWidth: "260px",
         maxWidth: "380px",

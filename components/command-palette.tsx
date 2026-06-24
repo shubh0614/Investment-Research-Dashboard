@@ -63,7 +63,7 @@ export function CommandPalette({ isAdmin }: CommandPaletteProps) {
         className="cmd-enter"
         style={{
           position: "relative", zIndex: 1, width: "100%", maxWidth: "440px", margin: "0 16px",
-          background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px",
+          background: "var(--surface-1)", border: "1px solid var(--border)", borderRadius: "14px",
           boxShadow: "0 32px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(124,137,255,.12)",
           overflow: "hidden",
         }}
@@ -80,7 +80,7 @@ export function CommandPalette({ isAdmin }: CommandPaletteProps) {
               if (e.key === "ArrowUp")   { e.preventDefault(); setCursor((c) => Math.max(c - 1, 0)); }
               if (e.key === "Enter" && items[cursor]) navigate(items[cursor].href);
             }}
-            placeholder="Jump to…"
+            placeholder="Jump to"
             style={{ flex: 1, background: "transparent", outline: "none", fontSize: "14px", color: "var(--text)" }}
           />
           <kbd style={{ fontFamily: "var(--font-mono)", fontSize: "11px", padding: "2px 6px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "5px", color: "var(--text-muted)" }}>
@@ -102,7 +102,7 @@ export function CommandPalette({ isAdmin }: CommandPaletteProps) {
                 style={{
                   display: "flex", alignItems: "center", gap: "12px", width: "100%",
                   padding: "10px 12px", borderRadius: "8px", textAlign: "left",
-                  background: active ? "var(--accent-weak)" : "transparent",
+                  background: active ? "var(--surface-3)" : "transparent",
                   color: active ? "var(--accent)" : "var(--text-muted)",
                   transition: "background 80ms, color 80ms",
                   border: "none", cursor: "pointer",

@@ -32,7 +32,7 @@ export default async function AdminPage() {
         <h2 className="mb-3 text-sm font-semibold" style={{ color: "var(--text)" }}>Invite code</h2>
         <div
           className="flex items-center justify-between rounded-xl border px-5 py-4 reveal"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
         >
           <div>
             <p className="text-xs" style={{ color: "var(--text-muted)" }}>
@@ -42,7 +42,7 @@ export default async function AdminPage() {
               className="mt-2 font-mono text-lg font-semibold tracking-widest"
               style={{ color: "var(--accent)", fontVariantNumeric: "tabular-nums" }}
             >
-              {inviteCode ?? "—"}
+              {inviteCode ?? "-"}
             </p>
           </div>
           {inviteCode && <CopyButtonClient value={inviteCode} />}

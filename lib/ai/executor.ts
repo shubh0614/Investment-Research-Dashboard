@@ -1,5 +1,5 @@
-/**
- * Phase 4.3 — Executor.
+﻿/**
+ * Phase 4.3 - Executor.
  *
  * Dispatches the planner's tool selections to the actual Phase 3 tool clients.
  * All selected tools run in parallel (Promise.allSettled). A tool failure
@@ -7,14 +7,15 @@
  * rather than failing the whole request.
  *
  * The executor is the boundary between the LLM layer and the data layer.
- * It does not call the model. It does not throw — every result is typed.
+ * It does not call the model. It does not throw - every result is typed.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getMarketData, type MarketDataResult }  from "@/lib/tools/market";
 import { searchNews, type NewsResult }            from "@/lib/tools/news";
 import { searchKnowledgeBase, type KBResult }     from "@/lib/tools/kb";
-import type { ToolCall, MarketDataCall, NewsCall, KBCall } from "./planner";
+import { searchWeb, type WebSearchResult }        from "@/lib/tools/web";
+import type { ToolCall, MarketDataCall, NewsCall, KBCall, WebCall } from "./planner";
 
 // ── Typed execution results ───────────────────────────────────────────────────
 
@@ -42,12 +43,21 @@ export interface ExecutedKB {
   error?: string;
 }
 
-export type ExecutedTool = ExecutedMarketData | ExecutedNews | ExecutedKB;
+export interface ExecutedWeb {
+  tool:   "search_web";
+  args:   WebCall["args"];
+  result: WebSearchResult;
+  ok:     boolean;
+  error?: string;
+}
+
+export type ExecutedTool = ExecutedMarketData | ExecutedNews | ExecutedKB | ExecutedWeb;
 
 export interface ExecutionResults {
   market?:    ExecutedMarketData;
   news?:      ExecutedNews;
   kb?:        ExecutedKB;
+  web?:       ExecutedWeb;
   durationMs: number;
 }
 
@@ -116,11 +126,31 @@ async function dispatchKB(
   }
 }
 
+async function dispatchWeb(
+  call: WebCall,
+  supabase: SupabaseClient,
+): Promise<ExecutedWeb> {
+  try {
+    const result = await searchWeb(call.args.query, supabase);
+    return { tool: "search_web", args: call.args, result, ok: result.ok };
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    console.error(`[executor] search_web failed: ${error}`);
+    return {
+      tool: "search_web",
+      args: call.args,
+      result: { ok: false as const, error, source: "web" },
+      ok: false,
+      error,
+    };
+  }
+}
+
 // ── Public API ─────────────────────────────────────────────────────────────────
 
 /**
  * Run all planned tools in parallel.
- * Returns a typed ExecutionResults — never throws.
+ * Returns a typed ExecutionResults - never throws.
  */
 export async function runExecutor(
   calls:    ToolCall[],
@@ -134,7 +164,7 @@ export async function runExecutor(
   console.log(`[executor] Running ${calls.length} tool(s) in parallel: ${calls.map((c) => c.tool).join(", ")}`);
   const start = Date.now();
 
-  // All tools are independent — run them all in parallel.
+  // All tools are independent - run them all in parallel.
   const settled = await Promise.allSettled(
     calls.map((call) => {
       switch (call.tool) {
@@ -144,6 +174,8 @@ export async function runExecutor(
           return dispatchNews(call, supabase);
         case "search_knowledge_base":
           return dispatchKB(call, supabase);
+        case "search_web":
+          return dispatchWeb(call, supabase);
       }
     }),
   );
@@ -152,20 +184,20 @@ export async function runExecutor(
 
   for (const outcome of settled) {
     if (outcome.status === "rejected") {
-      // Should not happen — dispatch functions never throw, but guard anyway.
       console.error("[executor] Unexpected settled rejection:", outcome.reason);
       continue;
     }
     const r = outcome.value;
     switch (r.tool) {
-      case "get_market_data":     results.market = r; break;
-      case "search_news":         results.news   = r; break;
-      case "search_knowledge_base": results.kb   = r; break;
+      case "get_market_data":       results.market = r; break;
+      case "search_news":           results.news   = r; break;
+      case "search_knowledge_base": results.kb     = r; break;
+      case "search_web":            results.web    = r; break;
     }
   }
 
   console.log(
-    `[executor] Done in ${results.durationMs}ms — market:${results.market?.ok??"-"} news:${results.news?.ok??"-"} kb:${results.kb?.ok??"-"}`,
+    `[executor] Done in ${results.durationMs}ms - market:${results.market?.ok??"-"} news:${results.news?.ok??"-"} kb:${results.kb?.ok??"-"} web:${results.web?.ok??"-"}`,
   );
 
   return results;

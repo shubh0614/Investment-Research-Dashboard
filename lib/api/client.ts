@@ -1,4 +1,4 @@
-/** Browser-side API client — uses session cookie auth automatically. */
+﻿/** Browser-side API client - uses session cookie auth automatically. */
 
 export async function apiFetch<T>(
   path: string,

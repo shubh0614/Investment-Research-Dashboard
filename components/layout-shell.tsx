@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Menu, Building2 } from "lucide-react";
@@ -50,7 +50,7 @@ export function LayoutShell({ profile, org, children }: LayoutShellProps) {
         />
       )}
 
-      {/* Sidebar — fixed on mobile, in-flow on desktop */}
+      {/* Sidebar - fixed on mobile, in-flow on desktop */}
       <div
         className="md:relative md:!transform-none md:flex md:h-full"
         style={{
@@ -77,13 +77,13 @@ export function LayoutShell({ profile, org, children }: LayoutShellProps) {
 
       {/* Main content */}
       <main style={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto", minWidth: 0 }}>
-        {/* Mobile top bar — ONLY shown on mobile via className, no inline display style */}
+        {/* Mobile top bar - ONLY shown on mobile via className, no inline display style */}
         <div
           className="flex md:hidden items-center gap-3"
           style={{
             padding: "12px 16px",
             borderBottom: "1px solid var(--border)",
-            background: "var(--surface)",
+            background: "var(--surface-1)",
             position: "sticky", top: 0, zIndex: 10,
           }}
         >
@@ -96,7 +96,7 @@ export function LayoutShell({ profile, org, children }: LayoutShellProps) {
             <Menu size={18} strokeWidth={1.5} />
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--accent-weak)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface-3)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Building2 size={12} strokeWidth={1.5} />
             </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{org.name}</span>

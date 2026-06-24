@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+﻿import type { SupabaseClient } from "@supabase/supabase-js";
 
 export interface CacheEntry<T> {
   data: T;
@@ -9,7 +9,7 @@ export interface CacheEntry<T> {
 /**
  * Read-through cache over the query_cache table.
  *
- * On hit: returns payload_json and from_cache=true — no upstream call.
+ * On hit: returns payload_json and from_cache=true - no upstream call.
  * On miss / expired: calls fetchFn, writes to cache (upsert), returns data.
  * query_cache has no RLS; any authenticated client can read/write it.
  */
@@ -32,7 +32,7 @@ export async function withCache<T>(
     return { data: cached.payload_json as T, from_cache: true, fetched_at: cached.fetched_at };
   }
 
-  console.log(`[cache] MISS key=${cacheKey} — fetching upstream`);
+  console.log(`[cache] MISS key=${cacheKey} - fetching upstream`);
   const t0 = Date.now();
   const data = await fetchFn();
   console.log(`[cache] STORE key=${cacheKey} latency=${Date.now() - t0}ms`);

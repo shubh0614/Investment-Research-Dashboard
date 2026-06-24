@@ -17,7 +17,7 @@ export function CopyButtonClient({ value }: { value: string }) {
     <button
       onClick={copy}
       className="flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs transition-colors duration-150"
-      style={{ border: "1px solid var(--border)", color: copied ? "var(--positive)" : "var(--text-muted)" }}
+      style={{ border: "1px solid var(--border)", color: copied ? "var(--pos)" : "var(--text-muted)" }}
       onMouseEnter={(e) => {
         if (!copied) {
           (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--accent)";

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+﻿import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 
 // All mocks hoisted before any imports so the orchestrator's deps resolve to mocks.
@@ -50,7 +50,7 @@ describe("runOrchestrator", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns LLM_NOT_CONFIGURED when the planner throws about a missing API key", async () => {
-    (runPlanner as Mock).mockRejectedValue(new LLMError("LLM_API_KEY not set — check .env.local"));
+    (runPlanner as Mock).mockRejectedValue(new LLMError("LLM_API_KEY not set - check .env.local"));
 
     const result = await runOrchestrator({ query: "test", supabase: MOCK_SUPABASE });
 

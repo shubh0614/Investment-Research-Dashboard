@@ -1,6 +1,6 @@
-/**
- * GET  /api/watchlist — list the user's watchlist items.
- * POST /api/watchlist — add a ticker to the watchlist.
+﻿/**
+ * GET  /api/watchlist - list the user's watchlist items.
+ * POST /api/watchlist - add a ticker to the watchlist.
  */
 
 import { NextRequest, NextResponse } from "next/server";

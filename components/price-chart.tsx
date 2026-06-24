@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   AreaChart,
@@ -47,7 +47,7 @@ export function PriceChart({ data, ticker }: PriceChartProps) {
         </span>
         <span
           className="font-mono text-sm"
-          style={{ color: up ? "var(--positive)" : "var(--negative)", fontVariantNumeric: "tabular-nums" }}
+          style={{ color: up ? "var(--pos)" : "var(--neg)", fontVariantNumeric: "tabular-nums" }}
         >
           {up ? "+" : ""}{fmt(change)} ({up ? "+" : ""}{pct.toFixed(2)}%)
         </span>
@@ -71,7 +71,7 @@ export function PriceChart({ data, ticker }: PriceChartProps) {
             dataKey="date"
             tickLine={false}
             axisLine={false}
-            tick={{ fontSize: 11, fill: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
+            tick={{ fontSize: 11, fill: "var(--text-faint)", fontFamily: "var(--font-mono)" }}
             tickFormatter={(v: string) => {
               const d = new Date(v);
               return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -81,7 +81,7 @@ export function PriceChart({ data, ticker }: PriceChartProps) {
           <YAxis
             tickLine={false}
             axisLine={false}
-            tick={{ fontSize: 11, fill: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
+            tick={{ fontSize: 11, fill: "var(--text-faint)", fontFamily: "var(--font-mono)" }}
             tickFormatter={(v: number) => `$${v.toFixed(0)}`}
             domain={[min * 0.97, max * 1.03]}
             width={48}
@@ -107,10 +107,11 @@ export function PriceChart({ data, ticker }: PriceChartProps) {
             strokeWidth={1.5}
             fill={`url(#grad-${ticker})`}
             dot={false}
-            activeDot={{ r: 3, fill: "var(--accent)", stroke: "var(--surface)", strokeWidth: 2 }}
+            activeDot={{ r: 3, fill: "var(--accent)", stroke: "var(--surface-1)", strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>
     </div>
   );
 }
+

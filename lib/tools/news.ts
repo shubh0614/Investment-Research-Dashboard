@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+﻿import type { SupabaseClient } from "@supabase/supabase-js";
 import { withCache } from "./cache";
 import { fetchWithRetry } from "./fetch";
 import { config } from "@/lib/config";
@@ -91,7 +91,7 @@ async function fetchFromNewsAPI(
 
 /**
  * Fetch recent financial news for a query, reading through the cache.
- * Returns a typed error result on failure — never throws.
+ * Returns a typed error result on failure - never throws.
  */
 export async function searchNews(
   query: string,

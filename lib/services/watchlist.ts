@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Watchlist service.
  *
  * Watchlist items are user-scoped (one per user+ticker) within an org.
@@ -44,7 +44,7 @@ export async function addToWatchlist(
     .single();
 
   if (error) {
-    // Unique constraint: (user_id, ticker) — treat as idempotent 409
+    // Unique constraint: (user_id, ticker) - treat as idempotent 409
     if (error.code === "23505") {
       throw Object.assign(new Error("Ticker already in watchlist"), { code: "DUPLICATE" });
     }

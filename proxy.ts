@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
@@ -6,8 +6,9 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Routes the proxy should never redirect away from.
-  // API routes handle their own auth and return JSON 401/403 — never redirect them to /login.
+  // API routes handle their own auth and return JSON 401/403 - never redirect them to /login.
   const isPublic =
+    pathname === "/" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
     pathname.startsWith("/api/");

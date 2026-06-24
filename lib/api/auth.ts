@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Shared auth helper for route handlers.
  *
  * Every protected route does the same two-step check:
@@ -49,7 +49,7 @@ export async function requireAuth(): Promise<AuthResult> {
     return {
       ok: false,
       response: NextResponse.json(
-        { ok: false, error: { code: "PROFILE_NOT_FOUND", message: "Profile not found — complete onboarding first" } },
+        { ok: false, error: { code: "PROFILE_NOT_FOUND", message: "Profile not found - complete onboarding first" } },
         { status: 403 },
       ),
     };

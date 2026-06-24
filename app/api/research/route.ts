@@ -1,8 +1,8 @@
-/**
+﻿/**
  * /api/research
  *
- * GET  — list the org's saved reports (tag + text filter, paginated).
- * POST — run the AI orchestrator and return an unsaved ResearchReport.
+ * GET  - list the org's saved reports (tag + text filter, paginated).
+ * POST - run the AI orchestrator and return an unsaved ResearchReport.
  *
  * Separation of run vs save is intentional: the user inspects the result
  * before deciding to persist it. Saving is POST /api/research/save (Phase 5).

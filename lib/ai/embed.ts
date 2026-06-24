@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Thin embedding utility over the Vercel AI SDK v6.
  * Phase 3 uses this only to embed KB documents at seed time.
  * Phase 4 builds on this to embed query strings for retrieval.
@@ -28,7 +28,7 @@ export async function embedTexts(texts: string[]): Promise<(number[] | null)[]> 
   if (!texts.length) return [];
 
   if (!isEmbeddingConfigured()) {
-    console.warn("[embed] No OPENAI_API_KEY or LLM_API_KEY — embeddings skipped, keyword fallback will be used");
+    console.warn("[embed] No OPENAI_API_KEY or LLM_API_KEY - embeddings skipped, keyword fallback will be used");
     return texts.map(() => null);
   }
 

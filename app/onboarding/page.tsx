@@ -42,7 +42,7 @@ export default function OnboardingPage() {
     <div className="flex min-h-screen items-center justify-center p-4" style={{ background: "var(--bg)" }}>
       <div className="w-full max-w-sm reveal">
         <div className="mb-8 flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: "var(--accent-weak)", color: "var(--accent)" }}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: "var(--surface-3)", color: "var(--accent)" }}>
             <BarChart3 size={16} strokeWidth={1.5} />
           </div>
           <span className="text-base font-semibold" style={{ color: "var(--text)" }}>Klypup</span>
@@ -65,7 +65,7 @@ export default function OnboardingPage() {
                 key={m}
                 onClick={() => setMode(m)}
                 className="rounded-lg border px-4 py-3 text-left transition-colors duration-150"
-                style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text)" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--accent)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)"; }}
               >
@@ -93,7 +93,7 @@ export default function OnboardingPage() {
                   id={id} type={type} required={!!required} value={value}
                   onChange={(e) => setter(e.target.value)} placeholder={placeholder}
                   className="h-9 rounded-lg border px-3 text-sm outline-none transition-colors duration-150"
-                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontFamily: mono ? "var(--font-mono)" : undefined }}
+                  style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text)", fontFamily: mono ? "var(--font-mono)" : undefined }}
                   onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
                   onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--border)"; }}
                 />
@@ -102,7 +102,7 @@ export default function OnboardingPage() {
 
             {error && (
               <p className="rounded-lg px-3 py-2 text-sm"
-                 style={{ background: "color-mix(in srgb, var(--negative) 12%, transparent)", color: "var(--negative)" }}>
+                 style={{ background: "color-mix(in srgb, var(--neg) 12%, transparent)", color: "var(--neg)" }}>
                 {error}
               </p>
             )}
@@ -120,7 +120,7 @@ export default function OnboardingPage() {
                 style={{ background: "var(--accent)", color: "var(--bg)" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.9"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}>
-                {pending ? "Setting up…" : mode === "create" ? "Create org" : "Join org"}
+                {pending ? "Setting up" : mode === "create" ? "Create org" : "Join org"}
               </button>
             </div>
           </form>
