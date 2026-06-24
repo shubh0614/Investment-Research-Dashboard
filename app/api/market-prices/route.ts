@@ -20,6 +20,8 @@ export async function GET(req: NextRequest) {
   const results = await getMarketData(tickers, "30d", auth.ctx.supabase);
 
   const prices: Record<string, { price: number; change_pct: number; series: { date: string; close: number }[] }> = {};
+  const errors: Record<string, string> = {};
+
   for (const [ticker, res] of Object.entries(results)) {
     if (res.ok) {
       prices[ticker] = {
@@ -27,10 +29,12 @@ export async function GET(req: NextRequest) {
         change_pct: res.data.change_pct,
         series:     res.data.series.slice(-30).map((p) => ({ date: p.date, close: p.close })),
       };
+    } else {
+      errors[ticker] = res.error;
     }
   }
 
-  return NextResponse.json({ prices }, {
-    headers: { "Cache-Control": "private, max-age=300" }, // 5-min client cache
+  return NextResponse.json({ ok: true, data: { prices, errors } }, {
+    headers: { "Cache-Control": "private, max-age=300" },
   });
 }

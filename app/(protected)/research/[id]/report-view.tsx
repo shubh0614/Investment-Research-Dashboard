@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp,
-  ExternalLink, Clock, Zap, BarChart2, Tag, ArrowLeft, FileDown,
+  ExternalLink, Clock, Zap, BarChart2, Tag, ArrowLeft, FileDown, User,
 } from "lucide-react";
 import { PriceChart } from "@/components/price-chart";
 import type { ReportRow } from "@/lib/services/research";
@@ -24,14 +24,14 @@ function MetricCell({ label, value }: { label: string; value: string | number | 
         className="mt-0.5 font-mono text-sm font-semibold"
         style={{ color: "var(--text)", fontVariantNumeric: "tabular-nums" }}
       >
-        {value != null ? String(value) : "—"}
+        {value != null ? String(value) : "-"}
       </p>
     </div>
   );
 }
 
 function fmtMetric(val: number | null | undefined, prefix = "", suffix = "", billions = false): string {
-  if (val == null) return "—";
+  if (val == null) return "-";
   if (billions && Math.abs(val) >= 1e9) return `${prefix}${(val / 1e9).toFixed(1)}B${suffix}`;
   if (billions && Math.abs(val) >= 1e6) return `${prefix}${(val / 1e6).toFixed(0)}M${suffix}`;
   return `${prefix}${val.toFixed(2)}${suffix}`;
@@ -129,7 +129,7 @@ function ComparisonTable({ rows }: { rows: ComparisonRow[] }) {
                   const val = row.values[t];
                   return (
                     <td key={t} className="px-4 py-2.5 text-right font-mono text-xs" style={{ color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>
-                      {val != null ? String(val) : "—"}
+                      {val != null ? String(val) : "-"}
                     </td>
                   );
                 })}
@@ -234,7 +234,19 @@ function RisksSection({ items }: { items: RiskItem[] }) {
             {risk.rationale}
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {risk.sources.map((s) => <SourceChip key={s} label={s} />)}
+            {risk.sources.map((s, idx) => {
+              const url = risk.source_urls?.[idx];
+              return url && url.startsWith("http") ? (
+                <a key={s} href={url} target="_blank" rel="noopener noreferrer"
+                   className="source-chip inline-flex items-center gap-1"
+                   style={{ textDecoration: "none" }}
+                   onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.75"; }}
+                   onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}>
+                  {s}
+                  <ExternalLink size={9} strokeWidth={1.5} />
+                </a>
+              ) : <SourceChip key={s} label={s} />;
+            })}
           </div>
         </div>
       ))}
@@ -445,6 +457,12 @@ export function ReportView({ report: row }: { report: ReportRow }) {
             <Clock size={11} strokeWidth={1.5} />
             {new Date(row.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
           </span>
+          {(row.author_name || row.author_email) && (
+            <span className="flex items-center gap-1.5 font-mono text-xs" style={{ color: "var(--text-faint)" }}>
+              <User size={11} strokeWidth={1.5} />
+              {row.author_name ?? row.author_email}
+            </span>
+          )}
           {row.tags.length > 0 && (
             <span className="flex items-center gap-1.5 font-mono text-xs" style={{ color: "var(--text-faint)" }}>
               <Tag size={11} strokeWidth={1.5} />
@@ -505,7 +523,7 @@ export function ReportView({ report: row }: { report: ReportRow }) {
                   </p>
                   <PriceChart data={pts} ticker={ticker} />
                   <p className="mt-3 font-mono text-xs" style={{ color: "var(--text-faint)" }}>
-                    Source: Alpha Vantage
+                    Source: Yahoo Finance / Finnhub
                   </p>
                 </div>
               ))}
