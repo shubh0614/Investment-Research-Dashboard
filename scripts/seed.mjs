@@ -144,18 +144,24 @@ const alphaReportResult = {
     {
       ticker: "NVDA",
       name: "NVIDIA Corporation",
-      overview: "Dominant AI infrastructure provider. Blackwell architecture ramping in Q4 FY2025.",
-      key_metrics: { revenue: "35.1B", gross_margin: "74.6%", pe_forward: "35x", market_cap: "3.3T" },
-      sources: ["nvidia-q3-2024-earnings", "semiconductor-landscape"],
+      overview: "Dominant AI infrastructure provider. Blackwell architecture ramping in Q4 FY2025. Data center revenue grew 112% YoY driven by hyperscaler and sovereign AI demand.",
+      metrics: { current_price: 134.56, price_change_1d: 1.24, market_cap: 3290000000000, pe_ratio: 52.3, forward_pe: 35.1, revenue_ttm: 96800000000 },
+      sources: ["Finnhub", "NVIDIA Q3 FY2025 Earnings Call Summary", "Semiconductor Landscape Overview"],
     },
   ],
   news: [
-    { headline: "NVIDIA Blackwell B200 GPUs Begin Mass Shipment to Hyperscalers", sentiment: "positive", confidence: 0.92, published_at: "2024-11-15", source: "Reuters" },
-    { headline: "NVIDIA Q3 Revenue Beats Estimates, Guides Higher on AI Demand", sentiment: "positive", confidence: 0.95, published_at: "2024-11-20", source: "Bloomberg" },
-    { headline: "China Export Controls Trim $2B from NVIDIA FY2025 Revenue", sentiment: "negative", confidence: 0.88, published_at: "2024-10-08", source: "WSJ" },
+    { headline: "NVIDIA Blackwell B200 GPUs Begin Mass Shipment to Hyperscalers", summary: "NVIDIA has commenced mass shipments of its Blackwell B200 GPUs to major cloud providers including Microsoft Azure and Google Cloud.", sentiment: "positive", confidence: 0.92, published_at: "2024-11-15", source: "Reuters", url: null },
+    { headline: "NVIDIA Q3 Revenue Beats Estimates, Guides Higher on AI Demand", summary: "NVIDIA reported Q3 FY2025 revenue of $35.1B, up 94% YoY, and guided Q4 above consensus on continued strong data center demand.", sentiment: "positive", confidence: 0.95, published_at: "2024-11-20", source: "Bloomberg", url: null },
+    { headline: "China Export Controls Trim $2B from NVIDIA FY2025 Revenue", summary: "Updated US export restrictions on AI chips to China are expected to reduce NVIDIA's FY2025 revenue by approximately $2B.", sentiment: "negative", confidence: 0.88, published_at: "2024-10-08", source: "WSJ", url: null },
   ],
-  risks: ["Supply chain concentration at TSMC CoWoS", "China export control expansion", "AMD MI300X inference competition", "Customer concentration (top 5 hyperscalers = 45% revenue)"],
-  tools_used: ["market_data", "news_search", "knowledge_base"],
+  risks: [
+    { risk: "Supply chain concentration at TSMC CoWoS", rationale: "NVIDIA's advanced Blackwell packaging relies entirely on TSMC's CoWoS process, which has limited capacity and long lead times.", severity: "high", sources: ["NVIDIA Q3 FY2025 Earnings Call Summary"], source_urls: [] },
+    { risk: "China export control expansion", rationale: "Further tightening of US export controls on AI accelerators could eliminate remaining China revenue, which represents a meaningful TAM.", severity: "high", sources: ["WSJ"], source_urls: [] },
+    { risk: "AMD MI300X inference competition", rationale: "AMD's MI300X is gaining traction for inference workloads where memory bandwidth matters more than training throughput.", severity: "medium", sources: ["Semiconductor Landscape Overview"], source_urls: [] },
+    { risk: "Customer concentration risk", rationale: "Top 5 hyperscalers represent approximately 45% of revenue, creating dependency on a small number of large buyers.", severity: "medium", sources: ["NVIDIA Q3 FY2025 Earnings Call Summary"], source_urls: [] },
+  ],
+  tools_used: ["get_market_data", "search_news", "search_knowledge_base"],
+  meta: { query_text: "Analyze NVIDIA's competitive position and financial outlook for the next 12 months", generated_at: "2024-11-21T10:00:00.000Z", latency_ms: 18400, token_usage: { prompt: 4200, completion: 950, total: 5150 } },
 };
 
 const alphaReport2Result = {
@@ -164,25 +170,31 @@ const alphaReport2Result = {
     {
       ticker: "AMD",
       name: "Advanced Micro Devices",
-      overview: "Credible NVIDIA challenger. MI300X competitive on memory bandwidth; ROCm improving.",
-      key_metrics: { revenue: "25.6B", gross_margin: "53%", pe_forward: "40x", market_cap: "260B" },
-      sources: ["amd-risk-factors", "semiconductor-landscape"],
+      overview: "Credible NVIDIA challenger. MI300X competitive on memory bandwidth for inference; ROCm 6.2 closing the software gap vs CUDA.",
+      metrics: { current_price: 519.85, price_change_1d: -5.76, market_cap: 847800000000, pe_ratio: 168.84, forward_pe: 53.22, revenue_ttm: 37080000000 },
+      sources: ["Finnhub", "AMD Risk Factors 2024", "Semiconductor Landscape Overview"],
     },
     {
       ticker: "INTC",
       name: "Intel Corporation",
-      overview: "Turnaround underway; Gaudi 3 price-competitive but limited traction. 18A node is make-or-break.",
-      key_metrics: { revenue: "53.5B", gross_margin: "38%", pe_forward: "N/M", market_cap: "85B" },
-      sources: ["intel-strategy", "semiconductor-landscape"],
+      overview: "Turnaround underway. Gaudi 3 price-competitive but limited traction. 18A node is the make-or-break catalyst for IFS viability.",
+      metrics: { current_price: 21.43, price_change_1d: -1.2, market_cap: 90800000000, pe_ratio: null, forward_pe: null, revenue_ttm: 53500000000 },
+      sources: ["Finnhub", "Intel Strategy Report 2024", "Semiconductor Landscape Overview"],
     },
   ],
   news: [
-    { headline: "Microsoft Azure Deploys AMD MI300X for OpenAI Inference Workloads", sentiment: "positive", confidence: 0.89, published_at: "2024-11-05", source: "Microsoft Blog" },
-    { headline: "AMD ROCm 6.2 Closes PyTorch Performance Gap With CUDA", sentiment: "positive", confidence: 0.82, published_at: "2024-10-22", source: "Tom's Hardware" },
-    { headline: "Intel Gaudi 3 Revenue 'Immaterial' in FY2024, Targets $500M in 2025", sentiment: "neutral", confidence: 0.85, published_at: "2024-11-01", source: "Intel IR" },
+    { headline: "Microsoft Azure Deploys AMD MI300X for OpenAI Inference Workloads", summary: "Microsoft has expanded its AMD MI300X deployment on Azure to support OpenAI inference workloads, citing high memory bandwidth advantages.", sentiment: "positive", confidence: 0.89, published_at: "2024-11-05", source: "Microsoft Blog", url: null },
+    { headline: "AMD ROCm 6.2 Closes PyTorch Performance Gap With CUDA", summary: "AMD's ROCm 6.2 release demonstrates near-parity with CUDA on key PyTorch benchmarks, reducing the software moat advantage.", sentiment: "positive", confidence: 0.82, published_at: "2024-10-22", source: "Tom's Hardware", url: null },
+    { headline: "Intel Gaudi 3 Revenue 'Immaterial' in FY2024, Targets $500M in 2025", summary: "Intel disclosed Gaudi 3 revenue was immaterial in FY2024 but set a $500M target for 2025, implying a significant ramp is required.", sentiment: "neutral", confidence: 0.85, published_at: "2024-11-01", source: "Intel IR", url: null },
   ],
-  risks: ["ROCm ecosystem immaturity vs. CUDA", "Intel 18A yield risk", "Custom silicon reducing merchant GPU TAM", "AMD customer concentration in Azure"],
-  tools_used: ["market_data", "news_search", "knowledge_base"],
+  risks: [
+    { risk: "ROCm ecosystem immaturity vs. CUDA", rationale: "Despite recent improvements, ROCm lacks CUDA's breadth of library support and developer familiarity, limiting AMD's addressable market.", severity: "high", sources: ["AMD Risk Factors 2024"], source_urls: [] },
+    { risk: "Intel 18A yield risk", rationale: "Intel's foundry turnaround depends on 18A achieving competitive yields; prior node delays (10nm, 7nm) establish a pattern of execution risk.", severity: "high", sources: ["Intel Strategy Report 2024"], source_urls: [] },
+    { risk: "Custom silicon reducing merchant GPU TAM", rationale: "Hyperscalers including Google (TPU), Amazon (Trainium), and Microsoft (Maia) are building custom AI chips that reduce reliance on merchant GPUs.", severity: "medium", sources: ["Semiconductor Landscape Overview"], source_urls: [] },
+    { risk: "AMD customer concentration in Azure", rationale: "A significant portion of MI300X revenue is concentrated in Microsoft Azure, creating dependency on a single customer's AI roadmap.", severity: "medium", sources: ["AMD Risk Factors 2024"], source_urls: [] },
+  ],
+  tools_used: ["get_market_data", "search_news", "search_knowledge_base"],
+  meta: { query_text: "Compare AMD and Intel as challengers to NVIDIA in AI accelerators", generated_at: "2024-11-21T14:00:00.000Z", latency_ms: 22100, token_usage: { prompt: 5800, completion: 1200, total: 7000 } },
 };
 
 const { data: insertedAlphaReports, error: er1 } = await service
@@ -212,18 +224,24 @@ const betaReportResult = {
     {
       ticker: "INTC",
       name: "Intel Corporation",
-      overview: "Deep value or value trap depending on 18A execution. IFS optionality not in the price.",
-      key_metrics: { revenue: "53.5B", gross_margin: "38%", pe_forward: "N/M", market_cap: "85B" },
-      sources: ["intel-strategy", "semiconductor-landscape"],
+      overview: "Deep value or value trap depending on 18A execution. IFS optionality not in the price. Sum-of-parts implies significant upside if the foundry thesis is validated.",
+      metrics: { current_price: 21.43, price_change_1d: -1.2, market_cap: 90800000000, pe_ratio: null, forward_pe: null, revenue_ttm: 53500000000 },
+      sources: ["Finnhub", "Intel Strategy Report 2024", "Semiconductor Landscape Overview"],
     },
   ],
   news: [
-    { headline: "Intel 18A Tape-In Completed; Management Claims PPA Competitive With TSMC N2", sentiment: "positive", confidence: 0.87, published_at: "2024-09-10", source: "AnandTech" },
-    { headline: "Intel Reports Q3 Loss, Announces 15,000 Headcount Reduction", sentiment: "negative", confidence: 0.93, published_at: "2024-10-31", source: "CNBC" },
-    { headline: "Microsoft Commits to Intel 18A Foundry Capacity for Azure Custom Silicon", sentiment: "positive", confidence: 0.91, published_at: "2024-08-22", source: "Bloomberg" },
+    { headline: "Intel 18A Tape-In Completed; Management Claims PPA Competitive With TSMC N2", summary: "Intel has completed tape-in for its 18A process node and claims power-performance-area metrics competitive with TSMC's N2, a critical milestone for IFS credibility.", sentiment: "positive", confidence: 0.87, published_at: "2024-09-10", source: "AnandTech", url: null },
+    { headline: "Intel Reports Q3 Loss, Announces 15,000 Headcount Reduction", summary: "Intel posted a Q3 net loss and announced a restructuring plan cutting 15,000 jobs, citing the need to reduce costs and refocus on core competencies.", sentiment: "negative", confidence: 0.93, published_at: "2024-10-31", source: "CNBC", url: null },
+    { headline: "Microsoft Commits to Intel 18A Foundry Capacity for Azure Custom Silicon", summary: "Microsoft has signed a multi-year agreement to use Intel's 18A process for manufacturing custom silicon chips destined for Azure infrastructure.", sentiment: "positive", confidence: 0.91, published_at: "2024-08-22", source: "Bloomberg", url: null },
   ],
-  risks: ["18A execution risk (prior node delays)", "IFS single anchor customer (Microsoft)", "Negative FCF (-$14B) limits error budget", "Talent drain during restructuring"],
-  tools_used: ["market_data", "news_search", "knowledge_base"],
+  risks: [
+    { risk: "18A execution risk from prior node delays", rationale: "Intel's track record includes multi-year slippages on 10nm and 7nm. A repeat on 18A would eliminate the IFS thesis and trigger another re-rating.", severity: "high", sources: ["Intel Strategy Report 2024"], source_urls: [] },
+    { risk: "IFS single anchor customer concentration", rationale: "Microsoft is the only publicly announced 18A hyperscaler customer. Failure to add a second anchor before 2025 would undermine the foundry revenue ramp.", severity: "high", sources: ["Bloomberg"], source_urls: [] },
+    { risk: "Negative FCF limits execution runway", rationale: "Intel is generating approximately -$14B FCF. Any further delays extend cash burn and may require additional capital raises or asset sales.", severity: "high", sources: ["Intel Strategy Report 2024"], source_urls: [] },
+    { risk: "Talent drain during restructuring", rationale: "The 15,000-headcount reduction risks losing the process engineers executing 18A, creating execution risk at exactly the wrong moment.", severity: "medium", sources: ["CNBC"], source_urls: [] },
+  ],
+  tools_used: ["get_market_data", "search_news", "search_knowledge_base"],
+  meta: { query_text: "Evaluate Intel's strategic transformation and 18A process node as an investment thesis", generated_at: "2024-11-22T09:00:00.000Z", latency_ms: 16800, token_usage: { prompt: 3900, completion: 820, total: 4720 } },
 };
 
 const { data: insertedBetaReports, error: er2 } = await service

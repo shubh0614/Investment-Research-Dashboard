@@ -377,8 +377,23 @@ function SectionNav({ sections }: { sections: NavSection[] }) {
 
 // ── Main report view ──────────────────────────────────────────────────────────
 export function ReportView({ report: row }: { report: ReportRow }) {
-  const r = row.result_json as unknown as ResearchReport;
-  if (!r) return <p style={{ color: "var(--text-muted)" }}>Report data unavailable.</p>;
+  const raw = row.result_json as unknown as ResearchReport & { [k: string]: unknown };
+  if (!raw) return <p style={{ color: "var(--text-muted)" }}>Report data unavailable.</p>;
+
+  // Normalize legacy seed data: old format used key_metrics on companies and
+  // stored risks as a plain string[] instead of RiskItem[].
+  const r: ResearchReport = {
+    ...raw,
+    companies: (raw.companies ?? []).map((co) => ({
+      ...co,
+      metrics: co.metrics ?? {},
+    })),
+    risks: ((raw.risks ?? []) as (RiskItem | string)[]).map((risk) =>
+      typeof risk === "string"
+        ? { risk, rationale: "", severity: "medium" as const, sources: [], source_urls: [] }
+        : risk
+    ),
+  };
 
   const seriesByTicker: Record<string, { date: string; close: number }[]> = {};
   for (const pt of r.price_series ?? []) {
