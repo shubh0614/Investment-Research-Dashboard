@@ -14,6 +14,9 @@ import { requireAuth } from "@/lib/api/auth";
 import { runOrchestrator } from "@/lib/ai/orchestrator";
 import { listReports } from "@/lib/services/research";
 
+// AI pipeline can take 20-35s — raise Vercel serverless timeout from default 10s
+export const maxDuration = 60;
+
 // ── GET /api/research ─────────────────────────────────────────────────────────
 
 const ListQuerySchema = z.object({
