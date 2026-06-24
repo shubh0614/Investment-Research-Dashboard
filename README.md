@@ -158,6 +158,14 @@ scripts/
 
 ---
 
+## Demo Video
+
+A full walkthrough of all three demo workflows is available here:
+
+**[Watch Demo Video (Google Drive)](https://drive.google.com/file/d/1A1GAldREJBa01NjTPYbPvrXiFlO8aZK7/view?usp=drive_link)**
+
+---
+
 ## Three Demo Workflows
 
 ### 1. Core AI feature
