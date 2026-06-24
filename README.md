@@ -47,9 +47,9 @@ Five diagrams (system overview, query data flow, ER, AI orchestration, multi-ten
 
 ## Screenshots
 
-| Login | Dashboard |
-|---|---|
-| ![Login page](screenshots/screenshot-login.png) | ![Dashboard](screenshots/screenshot-dashboard.png) |
+| Dashboard |
+|---|
+| ![Dashboard](screenshots/screenshot-dashboard.png) |
 
 | Research Report - Company Card & Metrics | Research Report - News & Risk |
 |---|---|
