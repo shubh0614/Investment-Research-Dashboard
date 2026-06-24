@@ -15,7 +15,14 @@ The specific draw was the intersection of pgvector and RLS. Isolating a relation
 ## 2. Stack choices
 
 **Next.js App Router as a full-stack monolith.**
-The key advantage is a single TypeScript type system spanning the AI output schema, the API response shape, and the UI components that render it. The `ResearchReport` type is defined once in `lib/ai/schemas.ts` and used everywhere - if the LLM returns a malformed report, the Zod parse fails at the API layer before the frontend ever sees it. A separate backend (FastAPI was the alternative) would have meant maintaining two type systems and a JSON contract between them, which is exactly where AI integrations break: the seam between the model's output and the code that consumes it.
+
+A note on the Python question first. My background is AI engineering - Python is my primary language, FastAPI is the stack I reach for by reflex when building anything LLM-related. The deliberate choice not to use it here is worth explaining, because it is not a gap in knowledge, it is a judgment call about where the hard problem actually lives.
+
+For Option A, the hard problem is multi-tenant data isolation over a shared knowledge base and a correctly typed AI output pipeline, not heavy ML compute. A Python backend buys you nothing in that problem space. What it costs is a network boundary, two type systems that have to agree on the shape of `ResearchReport` - the exact seam where AI integrations break - and a second deployed service with no justification for the scope. The Vercel AI SDK normalises tool-calling and structured output across Groq, OpenAI, and Anthropic behind one interface. There is no Python AI ecosystem advantage to chase here; the model calls are three lines regardless of the language they run in. The interesting engineering is in the data tier and the type contract, both of which are better served by a monolith.
+
+If this were Option B (five specialised agents doing heavy compute, inter-agent messaging, a pricing recommendation pipeline), Python would have been the right call. It was not here.
+
+The key advantage of the monolith is that the `ResearchReport` type is defined once in `lib/ai/schemas.ts` and used at every layer - Zod validates the model output at the API boundary before the frontend ever sees it. A separate backend would have meant maintaining that contract in two places, which is exactly how AI integrations develop silent bugs.
 
 The other reason is deployment. One service, one deploy, no CORS surface, no cross-service session plumbing.
 
