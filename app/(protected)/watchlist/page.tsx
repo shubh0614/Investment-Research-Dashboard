@@ -103,19 +103,21 @@ export default function WatchlistPage() {
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
           Add ticker
         </p>
-        <div className="flex gap-3">
-          <input value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} placeholder="NVDA" maxLength={10}
-            className="h-9 w-24 rounded border px-3 font-mono text-sm uppercase outline-none"
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)", fontVariantNumeric: "tabular-nums", transition: "border-color 140ms" }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
-            onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--border)"; }} />
-          <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="NVIDIA Corporation"
-            className="h-9 flex-1 rounded border px-3 text-sm outline-none"
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)", transition: "border-color 140ms" }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
-            onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--border)"; }} />
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-1 gap-3">
+            <input value={ticker} onChange={(e) => setTicker(e.target.value.toUpperCase())} placeholder="NVDA" maxLength={10}
+              className="h-9 w-24 shrink-0 rounded border px-3 font-mono text-sm uppercase outline-none"
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)", fontVariantNumeric: "tabular-nums", transition: "border-color 140ms" }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+              onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--border)"; }} />
+            <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="NVIDIA Corporation"
+              className="h-9 flex-1 rounded border px-3 text-sm outline-none"
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)", transition: "border-color 140ms" }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+              onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--border)"; }} />
+          </div>
           <button type="submit" disabled={addMut.isPending || !ticker.trim() || !company.trim()}
-            className="flex h-9 items-center gap-1.5 rounded px-4 text-sm font-medium disabled:opacity-40"
+            className="flex h-9 items-center justify-center gap-1.5 rounded px-4 text-sm font-medium disabled:opacity-40 sm:w-auto"
             style={{ background: "var(--accent)", color: "var(--accent-ink)", border: "none", cursor: "pointer" }}>
             {addMut.isPending ? <Loader2 size={13} strokeWidth={1.5} className="animate-spin" /> : <Plus size={13} strokeWidth={1.5} />}
             Add
@@ -154,7 +156,8 @@ export default function WatchlistPage() {
       )}
 
       {!isLoading && items.length > 0 && (
-        <div className="overflow-hidden rounded-lg stagger" style={{ border: "1px solid var(--border)" }}>
+        <div className="overflow-x-auto rounded-lg stagger" style={{ border: "1px solid var(--border)" }}>
+          <div style={{ minWidth: 600 }}>
           {/* Table header */}
           <div
             className="grid items-center px-4 py-2"
@@ -272,6 +275,7 @@ export default function WatchlistPage() {
               </div>
             );
           })}
+          </div>
         </div>
       )}
     </div>
