@@ -101,7 +101,7 @@ export default function SignupPage() {
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.9"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
           >
-            {pending ? "Creating account…" : "Create account"}
+            {pending ? "Creating account" : "Create account"}
           </button>
         </form>
 

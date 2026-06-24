@@ -1,12 +1,12 @@
-/**
+﻿/**
  * /api/research/[id]
  *
- * GET    — read one saved report (tenant re-checked in the query).
- * PATCH  — update title and/or tags.
- * DELETE — delete the report.
+ * GET    - read one saved report (tenant re-checked in the query).
+ * PATCH  - update title and/or tags.
+ * DELETE - delete the report.
  *
  * The org_id is always verified in the DB query, not just from the session.
- * A guessed ID from another org returns 404, never 403 — we do not confirm
+ * A guessed ID from another org returns 404, never 403 - we do not confirm
  * the existence of cross-tenant resources.
  */
 

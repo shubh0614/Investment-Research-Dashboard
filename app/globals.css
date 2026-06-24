@@ -58,7 +58,7 @@
   --color-sidebar-ring:               var(--ring);
 }
 
-/* DARK — Klypup default */
+/* DARK - Klypup default */
 :root {
   --bg:           #0C0B0A;
   --surface-1:    #141310;
@@ -223,14 +223,14 @@
   /* Sidebar width transition */
   .sidebar-expand { transition: width 220ms cubic-bezier(.2,.7,.2,1); }
 
-  /* Sliding nav indicator — amber, no neon glow */
+  /* Sliding nav indicator - amber, no neon glow */
   .nav-indicator {
     position: absolute; left: 0; width: 2px; border-radius: 2px;
     background: var(--accent); pointer-events: none;
     transition: top 220ms cubic-bezier(.2,.7,.2,1), height 220ms cubic-bezier(.2,.7,.2,1);
   }
 
-  /* AI thinking border — subtle amber pulse, not neon conic */
+  /* AI thinking border - subtle amber pulse, not neon conic */
   @keyframes ai-thinking-pulse { 0%,100%{opacity:.6} 50%{opacity:1} }
   .ai-thinking-wrap {
     padding: 1.5px; border-radius: 14px;

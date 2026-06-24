@@ -1,4 +1,4 @@
-/**
+﻿/**
  * POST /api/research/save
  *
  * Persists a ResearchReport that was previously returned by POST /api/research.
@@ -18,7 +18,7 @@ import { writeAuditEvent } from "@/lib/services/audit";
 const SaveSchema = z.object({
   query_text:  z.string().min(3).max(1000).trim(),
   title:       z.string().min(1).max(200).trim().optional(),
-  result_json: z.record(z.string(), z.unknown()),  // opaque blob — validated at AI layer
+  result_json: z.record(z.string(), z.unknown()),  // opaque blob - validated at AI layer
   tags:        z.array(z.string().min(1).max(50).trim()).max(10).default([]),
 });
 

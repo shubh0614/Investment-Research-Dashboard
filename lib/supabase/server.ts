@@ -1,15 +1,15 @@
-import { createServerClient } from "@supabase/ssr";
+﻿import { createServerClient } from "@supabase/ssr";
 import { cookies, headers } from "next/headers";
 import { config } from "@/lib/config";
 
 /**
- * Session-bound server client — RLS applies, auth.uid() is set.
+ * Session-bound server client - RLS applies, auth.uid() is set.
  *
  * Supports two auth mechanisms so both browser and API clients work:
  * 1. Cookie-based sessions (browser, the normal path).
  * 2. Authorization: Bearer <token> header (machine tests, API clients).
  *
- * Use this for all tenant queries — never the service client.
+ * Use this for all tenant queries - never the service client.
  */
 export async function createClient() {
   const cookieStore = await cookies();
@@ -27,7 +27,7 @@ export async function createClient() {
             cookieStore.set(name, value, options)
           );
         } catch {
-          // Called from a Server Component — mutations ignored; middleware handles refresh.
+          // Called from a Server Component - mutations ignored; middleware handles refresh.
         }
       },
     },

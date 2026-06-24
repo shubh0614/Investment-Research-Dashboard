@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Research report CRUD service.
  *
  * All queries are org-scoped (defense in depth on top of RLS).
@@ -13,25 +13,29 @@ import type { ResearchReport } from "@/lib/ai/schemas";
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 export interface ReportRow {
-  id:          string;
-  org_id:      string;
-  author_id:   string;
-  title:       string;
-  query_text:  string;
-  result_json: ResearchReport | null;
-  created_at:  string;
-  updated_at:  string;
-  tags:        string[];
+  id:           string;
+  org_id:       string;
+  author_id:    string;
+  author_name:  string | null;
+  author_email: string | null;
+  title:        string;
+  query_text:   string;
+  result_json:  ResearchReport | null;
+  created_at:   string;
+  updated_at:   string;
+  tags:         string[];
 }
 
 export interface ReportSummary {
-  id:         string;
-  title:      string;
-  query_text: string;
-  created_at: string;
-  updated_at: string;
-  author_id:  string;
-  tags:       string[];
+  id:           string;
+  title:        string;
+  query_text:   string;
+  created_at:   string;
+  updated_at:   string;
+  author_id:    string;
+  author_name:  string | null;
+  author_email: string | null;
+  tags:         string[];
 }
 
 export interface SaveReportInput {
@@ -125,10 +129,10 @@ export async function listReports(
     }
   }
 
-  // Main query — no result_json (too large for a list)
+  // Main query - no result_json (too large for a list)
   let query = supabase
     .from("research_reports")
-    .select("id, title, query_text, author_id, created_at, updated_at", { count: "exact" })
+    .select("id, title, query_text, author_id, created_at, updated_at, profiles!author_id(full_name, email)", { count: "exact" })
     .eq("org_id", orgId)
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
@@ -143,12 +147,24 @@ export async function listReports(
   const { data, error, count } = await query;
   if (error) throw new Error(`Failed to list reports: ${error.message}`);
 
-  const rows = (data ?? []) as Omit<ReportSummary, "tags">[];
+  type ProfileShape = { full_name: string | null; email: string | null };
+  type RawRow = Omit<ReportSummary, "tags" | "author_name" | "author_email"> & {
+    profiles: ProfileShape[] | ProfileShape | null;
+  };
+  const rows = (data ?? []) as unknown as RawRow[];
   const tagMap = await attachTags(supabase, rows.map((r) => r.id));
 
   return {
-    reports: rows.map((r) => ({ ...r, tags: tagMap.get(r.id) ?? [] })),
-    total:   count ?? 0,
+    reports: rows.map((r) => {
+      const profile = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
+      return {
+        ...r,
+        author_name:  profile?.full_name  ?? null,
+        author_email: profile?.email      ?? null,
+        tags:         tagMap.get(r.id) ?? [],
+      };
+    }),
+    total: count ?? 0,
   };
 }
 
@@ -159,15 +175,24 @@ export async function getReport(
 ): Promise<ReportRow | null> {
   const { data, error } = await supabase
     .from("research_reports")
-    .select("id, org_id, author_id, title, query_text, result_json, created_at, updated_at")
+    .select("id, org_id, author_id, title, query_text, result_json, created_at, updated_at, profiles!author_id(full_name, email)")
     .eq("id", reportId)
-    .eq("org_id", orgId)   // tenant re-check: wrong org → no row → 404
+    .eq("org_id", orgId)
     .single();
 
   if (error || !data) return null;
 
+  const raw = data as unknown as Omit<ReportRow, "tags" | "author_name" | "author_email"> & {
+    profiles: { full_name: string | null; email: string | null }[] | { full_name: string | null; email: string | null } | null;
+  };
+  const profile = Array.isArray(raw.profiles) ? raw.profiles[0] : raw.profiles;
   const tagMap = await attachTags(supabase, [reportId]);
-  return { ...(data as Omit<ReportRow, "tags">), tags: tagMap.get(reportId) ?? [] };
+  return {
+    ...raw,
+    author_name:  profile?.full_name  ?? null,
+    author_email: profile?.email      ?? null,
+    tags:         tagMap.get(reportId) ?? [],
+  };
 }
 
 export interface UpdateReportInput {

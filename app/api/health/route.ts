@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { config } from "@/lib/config";
 
 export async function GET() {
   try {
     const supabase = await createClient();
-    // Minimal round-trip — just checks connectivity, not a real query.
+    // Minimal round-trip - just checks connectivity, not a real query.
     const { error } = await supabase.from("_health_check").select("1").limit(1).maybeSingle();
 
-    // A missing-table error means the DB is reachable — the table just doesn't exist yet.
+    // A missing-table error means the DB is reachable - the table just doesn't exist yet.
     // PostgreSQL returns code 42P01 ("undefined_table"); PostgREST returns a "schema cache" message.
     const dbOk =
       !error ||

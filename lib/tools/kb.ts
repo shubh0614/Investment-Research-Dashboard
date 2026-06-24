@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+﻿import type { SupabaseClient } from "@supabase/supabase-js";
 import { embedQuery } from "@/lib/ai/embed";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -21,7 +21,7 @@ export type KBResult =
 // ── Retriever ─────────────────────────────────────────────────────────────────
 
 const MAX_RESULTS   = 8;
-const MIN_SIM_SCORE = 0.3; // cosine similarity floor — below this is noise
+const MIN_SIM_SCORE = 0.3; // cosine similarity floor - below this is noise
 
 /**
  * Tenant-scoped knowledge-base search.
@@ -44,7 +44,7 @@ export async function searchKnowledgeBase(
       return vectorSearch(query, queryEmbedding, supabase, company);
     }
 
-    console.log("[kb] No query embedding — using keyword fallback");
+    console.log("[kb] No query embedding - using keyword fallback");
     return keywordSearch(query, supabase, company);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -61,40 +61,44 @@ async function vectorSearch(
   supabase: SupabaseClient,
   company?: string,
 ): Promise<KBResult> {
-  // PostgREST exposes the cosine distance operator (<=>).
-  // We select document metadata via a join through documents.
-  // RLS on document_chunks restricts to the current tenant automatically.
-  const vectorLiteral = `[${embedding.join(",")}]`;
+  // Resolve the caller's org_id from their session (needed for RPC isolation).
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
-  let q = supabase
-    .from("document_chunks")
-    .select(
-      `id, document_id, chunk_index, content, token_count,
-       documents!inner(title, source_label, company)`,
-    )
-    .order(`embedding <=> '${vectorLiteral}'::vector`)
-    .limit(MAX_RESULTS);
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("org_id")
+    .eq("id", user.id)
+    .single();
 
-  if (company) {
-    q = q.eq("documents.company", company.toUpperCase());
-  }
+  if (!profile) throw new Error("Profile not found");
 
-  const { data, error } = await q;
+  // Use RPC to avoid embedding the 1536-float vector in a URL parameter,
+  // which exceeds PostgREST's URL length limit (~8KB).
+  const { data, error } = await supabase.rpc("match_document_chunks", {
+    query_embedding: embedding as unknown as string,
+    match_threshold: MIN_SIM_SCORE,
+    match_count:     MAX_RESULTS,
+    p_org_id:        profile.org_id,
+    p_company:       company?.toUpperCase() ?? null,
+  });
+
   if (error) throw new Error(error.message);
 
-  const chunks: KBChunk[] = (data ?? []).map((row) => {
-    const doc = (row.documents as unknown) as { title: string; source_label: string; company: string };
-    return {
-      id:           row.id,
-      document_id:  row.document_id,
-      chunk_index:  row.chunk_index,
-      content:      row.content,
-      similarity:   null, // PostgREST doesn't return the distance value in .select()
-      doc_title:    doc.title,
-      source_label: doc.source_label,
-      company:      doc.company,
-    };
-  });
+  const chunks: KBChunk[] = (data ?? []).map((row: {
+    id: string; document_id: string; chunk_index: number;
+    content: string; similarity: number;
+    doc_title: string; source_label: string; company: string;
+  }) => ({
+    id:           row.id,
+    document_id:  row.document_id,
+    chunk_index:  row.chunk_index,
+    content:      row.content,
+    similarity:   row.similarity,
+    doc_title:    row.doc_title,
+    source_label: row.source_label,
+    company:      row.company,
+  }));
 
   console.log(`[kb] vector search query="${query}" results=${chunks.length}`);
   return { ok: true, data: chunks, retrieval_method: "vector" };

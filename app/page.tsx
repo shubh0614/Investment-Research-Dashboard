@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/repositories/profiles";
 import Link from "next/link";
@@ -55,7 +55,7 @@ export default async function RootPage() {
               From question to<br />sourced report,<br />in minutes.
             </h1>
             <p style={{ fontSize: 15, lineHeight: 1.65, color: "var(--text-muted)", marginBottom: 32, maxWidth: 440 }}>
-              Ask in plain English. Klypup pulls live prices, filings, earnings, and news, then returns a structured, source-attributed analysis — not a wall of text, and not a guess.
+              Ask in plain English. Klypup pulls live prices, filings, earnings, and news, then returns a structured, source-attributed analysis. Not a wall of text, and not a guess.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link href="/login"
@@ -73,12 +73,12 @@ export default async function RootPage() {
             </p>
           </div>
 
-          {/* Right — product mock */}
+          {/* Right - product mock */}
           <div style={{ borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface-1)", overflow: "hidden" }}>
             {/* Mock report header */}
             <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid var(--border)" }}>
               <p style={{ fontSize: 10, color: "var(--text-faint)", fontFamily: "var(--font-mono)", marginBottom: 6, letterSpacing: "0.06em", textTransform: "uppercase" }}>Research report · NVDA · {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}</p>
-              <p style={{ fontSize: 15, fontWeight: 600, fontFamily: "var(--font-serif)", color: "var(--text)", lineHeight: 1.3 }}>NVIDIA Corporation — Q4 Overview &amp; Risk Assessment</p>
+              <p style={{ fontSize: 15, fontWeight: 600, fontFamily: "var(--font-serif)", color: "var(--text)", lineHeight: 1.3 }}>NVIDIA Corporation: Q4 Overview &amp; Risk Assessment</p>
             </div>
             {/* Mock company card */}
             <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)" }}>
@@ -124,7 +124,7 @@ export default async function RootPage() {
                   {[
                     ["Revenue TTM", "$113B", "$22.7B", "$54.2B"],
                     ["Gross Margin", "74.6%", "47.2%", "41.5%"],
-                    ["P/E Ratio", "52.4×", "138×", "—"],
+                    ["P/E Ratio", "52.4×", "138×", "N/A"],
                   ].map(([metric, ...vals], ri) => (
                     <tr key={ri} style={{ borderTop: "1px solid var(--border)" }}>
                       <td style={{ padding: "5px 0", color: "var(--text-muted)", fontSize: 10 }}>{metric}</td>
@@ -153,15 +153,15 @@ export default async function RootPage() {
       </section>
 
       {/* ── Problem ─────────────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: 800, margin: "0 auto", padding: "80px 32px" }}>
+      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 32px" }}>
         <p style={{ fontSize: 11, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--accent)", marginBottom: 16 }}>
           The problem
         </p>
-        <h2 style={{ fontSize: "2rem", fontWeight: 700, fontFamily: "var(--font-serif)", letterSpacing: "-0.025em", color: "var(--text)", marginBottom: 20, lineHeight: 1.15 }}>
+        <h2 style={{ fontSize: "2rem", fontWeight: 700, fontFamily: "var(--font-serif)", letterSpacing: "-0.025em", color: "var(--text)", marginBottom: 20, lineHeight: 1.15, maxWidth: 640 }}>
           Research shouldn&apos;t take days.
         </h2>
-        <p style={{ fontSize: 15, lineHeight: 1.75, color: "var(--text-muted)", maxWidth: 640 }}>
-          Pulling prices from a terminal. Reading thirty news articles. Combing SEC filings and earnings transcripts. Stitching it into something a partner can use. By the time it&apos;s done, the market has moved — and a generic chatbot&apos;s summary is something you&apos;d never put your name on.
+        <p style={{ fontSize: 15, lineHeight: 1.75, color: "var(--text-muted)", maxWidth: 600 }}>
+          Pulling prices from a terminal. Reading thirty news articles. Combing SEC filings and earnings transcripts. Stitching it into something a partner can use. By the time it&apos;s done, the market has moved, and a generic chatbot&apos;s summary is something you&apos;d never put your name on.
         </p>
       </section>
 
@@ -192,7 +192,7 @@ export default async function RootPage() {
                 n: "03",
                 icon: <FileText size={20} strokeWidth={1.5} />,
                 title: "Get a structured, sourced report",
-                body: "Company cards, comparison tables, charts, and a news-sentiment read — every data point linked to its source.",
+                body: "Company cards, comparison tables, charts, and a news-sentiment read. Every data point linked to its source.",
               },
             ].map((step) => (
               <div key={step.n} style={{ padding: "28px 28px 24px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface-2)" }}>
@@ -218,12 +218,12 @@ export default async function RootPage() {
             Structured. Sourced. Auditable.
           </h2>
           <p style={{ fontSize: 15, color: "var(--text-muted)", maxWidth: 560, lineHeight: 1.65 }}>
-            Klypup doesn&apos;t hand you paragraphs to fact-check. It returns the analysis as components you can scan — and every number shows where it came from.
+            Klypup doesn&apos;t hand you paragraphs to fact-check. It returns the analysis as components you can scan, and every number shows where it came from.
           </p>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
           {[
-            { title: "Clean cards, not paragraphs", desc: "Key metrics structured per company — price, market cap, P/E, revenue — not buried in prose." },
+            { title: "Clean cards, not paragraphs", desc: "Key metrics structured per company: price, market cap, P/E, revenue. Not buried in prose." },
             { title: "Side-by-side comparison tables", desc: "Tabular numbers across companies in aligned columns with source attribution per row." },
             { title: "Charts with source labels", desc: "30/90-day price history per ticker, styled for readability, source listed below." },
             { title: "News sentiment read", desc: "Positive/negative/neutral breakdown with per-article confidence and direct links to originals." },
@@ -256,7 +256,7 @@ export default async function RootPage() {
               { icon: <TrendingUp size={18} strokeWidth={1.5} />, title: "Watchlist", desc: "Track tickers with live prices, daily deltas, and 30-day sparklines." },
               { icon: <Clock size={18} strokeWidth={1.5} />, title: "Saved research", desc: "Every report saved, tagged, and searchable. Your research archive." },
               { icon: <BarChart3 size={18} strokeWidth={1.5} />, title: "Compare companies", desc: "Side-by-side financials, metrics, and news across multiple tickers." },
-              { icon: <Users size={18} strokeWidth={1.5} />, title: "Team workspace", desc: "Isolated org workspace — invite colleagues, share reports, manage access." },
+              { icon: <Users size={18} strokeWidth={1.5} />, title: "Team workspace", desc: "Isolated org workspace. Invite colleagues, share reports, manage access." },
             ].map((f) => (
               <div key={f.title} style={{ padding: "20px 20px 18px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface-2)" }}>
                 <div style={{ color: "var(--accent)", marginBottom: 12 }}>{f.icon}</div>
@@ -269,19 +269,15 @@ export default async function RootPage() {
       </section>
 
       {/* ── Trust ───────────────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: 800, margin: "0 auto", padding: "80px 32px" }}>
-        <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-          <Shield size={18} strokeWidth={1.5} style={{ color: "var(--accent)", flexShrink: 0, marginTop: 2 }} />
-          <div>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 700, fontFamily: "var(--font-serif)", letterSpacing: "-0.02em", color: "var(--text)", marginBottom: 12, lineHeight: 1.2 }}>
-              Built for teams that get audited.
-            </h2>
-            <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 560 }}>
-              Your organization gets its own workspace, fully isolated from every other organization on Klypup. Source attribution on every data point means anyone on your team can trace a conclusion back to its filing, transcript, or article.
-            </p>
-          </div>
-        </div>
-        <div style={{ marginTop: 20, display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 32px" }}>
+        <Shield size={18} strokeWidth={1.5} style={{ color: "var(--accent)", marginBottom: 16 }} />
+        <h2 style={{ fontSize: "1.75rem", fontWeight: 700, fontFamily: "var(--font-serif)", letterSpacing: "-0.025em", color: "var(--text)", marginBottom: 14, lineHeight: 1.2, maxWidth: 560 }}>
+          Built for teams that get audited.
+        </h2>
+        <p style={{ fontSize: 15, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 600, marginBottom: 24 }}>
+          Your organization gets its own workspace, fully isolated from every other organization on Klypup. Source attribution on every data point means anyone on your team can trace a conclusion back to its filing, transcript, or article.
+        </p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {["Source-attributed output", "Isolated org workspaces", "Role-based access control"].map((c) => (
             <span key={c} className="source-chip" style={{ fontSize: 12 }}>{c}</span>
           ))}

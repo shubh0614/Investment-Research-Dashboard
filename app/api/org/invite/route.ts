@@ -1,9 +1,9 @@
-/**
+﻿/**
  * POST /api/org/invite
  *
  * Returns the org's invite code. Admins share this code with new members;
  * POST /api/onboarding with the code joins the org as analyst.
- * No body needed — code is set at org creation and never rotated in the MVP.
+ * No body needed - code is set at org creation and never rotated in the MVP.
  */
 
 import { NextResponse } from "next/server";

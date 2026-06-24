@@ -1,18 +1,18 @@
-/**
- * Model factory — maps LLM_PROVIDER env to an AI SDK LanguageModel.
+﻿/**
+ * Model factory - maps LLM_PROVIDER env to an AI SDK LanguageModel.
  *
  * Groq (default): uses createOpenAI with Groq's OpenAI-compatible base URL.
  *   Avoids a second @ai-sdk/groq package while remaining provider-agnostic;
  *   swapping to the official Groq provider is a one-line change.
  * OpenAI: uses @ai-sdk/openai directly.
- * Anthropic: not yet wired — throws a clear error (add @ai-sdk/anthropic when needed).
+ * Anthropic: not yet wired - throws a clear error (add @ai-sdk/anthropic when needed).
  */
 
 import { createOpenAI, openai } from "@ai-sdk/openai";
 import type { LanguageModel } from "ai";
 import { config } from "@/lib/config";
 
-// Default models per provider — overridden by LLM_MODEL env var.
+// Default models per provider - overridden by LLM_MODEL env var.
 const PROVIDER_DEFAULTS: Record<string, string> = {
   groq:      "llama-3.3-70b-versatile", // best tool-calling + JSON mode on Groq free tier
   openai:    "gpt-4o-mini",

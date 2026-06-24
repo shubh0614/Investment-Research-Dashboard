@@ -80,7 +80,7 @@ export function CommandPalette({ isAdmin }: CommandPaletteProps) {
               if (e.key === "ArrowUp")   { e.preventDefault(); setCursor((c) => Math.max(c - 1, 0)); }
               if (e.key === "Enter" && items[cursor]) navigate(items[cursor].href);
             }}
-            placeholder="Jump to…"
+            placeholder="Jump to"
             style={{ flex: 1, background: "transparent", outline: "none", fontSize: "14px", color: "var(--text)" }}
           />
           <kbd style={{ fontFamily: "var(--font-mono)", fontSize: "11px", padding: "2px 6px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "5px", color: "var(--text-muted)" }}>

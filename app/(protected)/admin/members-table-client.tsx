@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Users, Trash2 } from "lucide-react";
@@ -91,7 +91,7 @@ export function MembersTableClient({ initialMembers, currentUserId }: Props) {
                   className="text-xs font-medium"
                   style={{ color: "var(--neg)", background: "none", border: "none", cursor: "pointer", opacity: isRemoving ? 0.5 : 1 }}
                 >
-                  {isRemoving ? "Removing…" : "Remove"}
+                  {isRemoving ? "Removing" : "Remove"}
                 </button>
                 <span style={{ color: "var(--border)" }}>·</span>
                 <button
@@ -143,7 +143,7 @@ export function MembersTableClient({ initialMembers, currentUserId }: Props) {
               {new Date(m.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
             </span>
 
-            {/* Remove button — hidden for self */}
+            {/* Remove button - hidden for self */}
             <div className="flex justify-end">
               {!isSelf && (
                 <button

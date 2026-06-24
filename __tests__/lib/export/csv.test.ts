@@ -20,10 +20,11 @@ const REPORT: ResearchReport = {
     source:       "Reuters",
   }],
   risks: [{
-    risk:      "Regulatory risk",
-    rationale: "EU Digital Markets Act exposure.",
-    severity:  "medium",
-    sources:   ["news"],
+    risk:        "Regulatory risk",
+    rationale:   "EU Digital Markets Act exposure.",
+    severity:    "medium",
+    sources:     ["news"],
+    source_urls: [],
   }],
   tools_used: ["get_market_data", "search_news"],
   meta: {

@@ -1,5 +1,5 @@
-/**
- * fetchWithRetry — wraps the global fetch with a timeout and one bounded
+﻿/**
+ * fetchWithRetry - wraps the global fetch with a timeout and one bounded
  * retry on transient (5xx / network) failures, per the constitution §2.4.
  * 4xx errors are not retried (they are not transient).
  */

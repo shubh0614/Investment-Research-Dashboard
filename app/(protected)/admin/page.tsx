@@ -42,7 +42,7 @@ export default async function AdminPage() {
               className="mt-2 font-mono text-lg font-semibold tracking-widest"
               style={{ color: "var(--accent)", fontVariantNumeric: "tabular-nums" }}
             >
-              {inviteCode ?? "—"}
+              {inviteCode ?? "-"}
             </p>
           </div>
           {inviteCode && <CopyButtonClient value={inviteCode} />}

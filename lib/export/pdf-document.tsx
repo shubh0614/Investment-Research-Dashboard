@@ -1,6 +1,6 @@
-/**
+﻿/**
  * @react-pdf/renderer document component.
- * Server-side only — only imported by the export API route.
+ * Server-side only - only imported by the export API route.
  */
 
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
@@ -52,7 +52,7 @@ const SENTIMENT_COLOR: Record<string, string> = { positive: C.positive, negative
 const SEVERITY_COLOR:  Record<string, string> = { high: C.negative, medium: C.warn, low: C.positive };
 
 function fmtNum(val: number | null | undefined, prefix = "", suffix = "", big = false): string {
-  if (val == null) return "—";
+  if (val == null) return "-";
   if (big) {
     if (Math.abs(val) >= 1e9) return `${prefix}${(val / 1e9).toFixed(1)}B${suffix}`;
     if (Math.abs(val) >= 1e6) return `${prefix}${(val / 1e6).toFixed(0)}M${suffix}`;
@@ -75,7 +75,7 @@ export function ReportPdfDocument({ title, query, report: r }: Props) {
     <Document title={title} author="Klypup" creator="Klypup Research Platform">
       <Page size="A4" style={styles.page}>
 
-        {/* Header (fixed — repeats on each page) */}
+        {/* Header (fixed - repeats on each page) */}
         <View style={styles.header} fixed>
           <Text style={styles.brand}>KLYPUP</Text>
           <Text style={styles.headerMeta}>{dateStr}{"\n"}Tools: {r.tools_used.join(", ")}</Text>
@@ -175,7 +175,7 @@ export function ReportPdfDocument({ title, query, report: r }: Props) {
           </View>
         )}
 
-        {/* Footer (fixed — repeats on each page) */}
+        {/* Footer (fixed - repeats on each page) */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>Klypup Research Platform</Text>
           <Text

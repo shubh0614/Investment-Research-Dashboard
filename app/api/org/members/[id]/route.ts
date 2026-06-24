@@ -1,8 +1,8 @@
-/**
+﻿/**
  * DELETE /api/org/members/:id
  *
  * Removes a member from the admin's org. Admin-only.
- * An admin cannot remove themselves — checked here and enforced by RLS.
+ * An admin cannot remove themselves - checked here and enforced by RLS.
  */
 
 import { NextResponse } from "next/server";

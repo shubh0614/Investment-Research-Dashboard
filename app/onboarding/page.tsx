@@ -120,7 +120,7 @@ export default function OnboardingPage() {
                 style={{ background: "var(--accent)", color: "var(--bg)" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.9"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}>
-                {pending ? "Setting up…" : mode === "create" ? "Create org" : "Join org"}
+                {pending ? "Setting up" : mode === "create" ? "Create org" : "Join org"}
               </button>
             </div>
           </form>

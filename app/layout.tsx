@@ -24,7 +24,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Klypup — Investment Research Dashboard",
+  title: "Klypup - Investment Research Dashboard",
   description: "AI-powered, multi-tenant investment research platform",
 };
 

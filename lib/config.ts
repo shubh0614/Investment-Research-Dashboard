@@ -1,7 +1,7 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 const envSchema = z.object({
-  // Supabase — required at startup
+  // Supabase - required at startup
   NEXT_PUBLIC_SUPABASE_URL: z
     .string({ message: "NEXT_PUBLIC_SUPABASE_URL is required" })
     .url({ message: "NEXT_PUBLIC_SUPABASE_URL must be a valid URL" }),
@@ -12,17 +12,18 @@ const envSchema = z.object({
     message: "SUPABASE_SERVICE_ROLE_KEY is required",
   }),
 
-  // LLM — optional until Phase 4
+  // LLM - optional until Phase 4
   LLM_PROVIDER: z.enum(["groq", "openai", "anthropic"]).default("groq"),
   LLM_MODEL: z.string().default(""),
   LLM_API_KEY: z.string().default(""),
 
-  // Embeddings — OPENAI_API_KEY used by embed.ts (text-embedding-3-small, 1536 dims)
+  // Embeddings - OPENAI_API_KEY used by embed.ts (text-embedding-3-small, 1536 dims)
   OPENAI_API_KEY: z.string().default(""),
 
-  // External data APIs — optional (demo data pre-warmed in query_cache by seed)
+  // External data APIs - optional (demo data pre-warmed in query_cache by seed)
   MARKET_DATA_API_KEY: z.string().default(""),
   NEWS_API_KEY: z.string().default(""),
+  TAVILY_API_KEY: z.string().default(""),
 
   // App
   APP_URL: z
@@ -45,5 +46,5 @@ function loadConfig() {
   return result.data;
 }
 
-// Evaluated once at server startup — fails fast if required vars are absent.
+// Evaluated once at server startup - fails fast if required vars are absent.
 export const config = loadConfig();

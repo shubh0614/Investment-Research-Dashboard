@@ -35,7 +35,7 @@ export function QuickSearch() {
         type="text"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Ask a research question — e.g. Compare AMD and NVDA this quarter"
+        placeholder="Ask a research question, e.g. Compare AMD and NVDA this quarter"
         style={{
           flex: 1,
           height: 44,

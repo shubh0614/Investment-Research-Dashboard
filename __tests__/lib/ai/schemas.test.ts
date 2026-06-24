@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   NewsItemSchema,
   CompanyOverviewSchema,
@@ -85,7 +85,7 @@ describe("CompanyOverviewSchema", () => {
     expect(() => CompanyOverviewSchema.parse(company())).not.toThrow();
   });
 
-  it("rejects empty sources array — every company card must cite a source", () => {
+  it("rejects empty sources array - every company card must cite a source", () => {
     expect(CompanyOverviewSchema.safeParse(company({ sources: [] })).success).toBe(false);
   });
 
@@ -109,7 +109,7 @@ describe("RiskItemSchema", () => {
     expect(RiskItemSchema.safeParse(risk({ severity: "critical" })).success).toBe(false);
   });
 
-  it("rejects empty sources array — every risk must be attributable", () => {
+  it("rejects empty sources array - every risk must be attributable", () => {
     expect(RiskItemSchema.safeParse(risk({ sources: [] })).success).toBe(false);
   });
 
@@ -177,7 +177,7 @@ describe("SearchKnowledgeBaseArgsSchema", () => {
   });
 });
 
-// ── SynthesisOutputSchema — min-1 invariants ──────────────────────────────────
+// ── SynthesisOutputSchema - min-1 invariants ──────────────────────────────────
 
 describe("SynthesisOutputSchema", () => {
   const base = {
@@ -188,15 +188,15 @@ describe("SynthesisOutputSchema", () => {
     tools_used: ["search_news"],
   };
 
-  it("rejects empty companies array — synthesis must have at least one company", () => {
+  it("rejects empty companies array - synthesis must have at least one company", () => {
     expect(SynthesisOutputSchema.safeParse({ ...base, companies: [] }).success).toBe(false);
   });
 
-  it("rejects empty risks array — synthesis must have at least one risk", () => {
+  it("rejects empty risks array - synthesis must have at least one risk", () => {
     expect(SynthesisOutputSchema.safeParse({ ...base, risks: [] }).success).toBe(false);
   });
 
-  it("rejects empty tools_used — synthesis must name the tools it called", () => {
+  it("rejects empty tools_used - synthesis must name the tools it called", () => {
     expect(SynthesisOutputSchema.safeParse({ ...base, tools_used: [] }).success).toBe(false);
   });
 

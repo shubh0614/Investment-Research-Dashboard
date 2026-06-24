@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -60,7 +60,7 @@ export function ThemeScript() {
   );
 }
 
-/** Hook — returns current theme and a toggle function. */
+/** Hook - returns current theme and a toggle function. */
 export function useTheme() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 

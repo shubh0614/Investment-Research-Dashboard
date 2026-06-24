@@ -11,7 +11,7 @@ const EXAMPLES = [
   "Give me an overview of NVIDIA: this quarter's stock performance, major news, and key risks.",
   "Compare AMD and Intel: market cap, revenue, P/E, and competitive positioning.",
   "What are the major risks for Microsoft going into the next quarter?",
-  "Summarize recent news and sentiment around Apple — last 30 days only.",
+  "Summarize recent news and sentiment around Apple, last 30 days only.",
 ];
 
 const STEPS = [
@@ -164,7 +164,7 @@ export default function NewResearchPage() {
                 }}
               />
 
-              {/* Step progress — shown while running */}
+              {/* Step progress - shown while running */}
               {running && (
                 <div style={{ borderTop: "1px solid var(--border)" }}>
                   <StepProgress phase={phase} />
@@ -189,7 +189,7 @@ export default function NewResearchPage() {
                     border: "none", cursor: running ? "not-allowed" : "pointer",
                   }}
                 >
-                  {running ? "Researching…" : "Research"}
+                  {running ? "Researching" : "Research"}
                 </button>
               </div>
             </div>

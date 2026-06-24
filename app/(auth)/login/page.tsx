@@ -47,7 +47,7 @@ export default function LoginPage() {
         overflow: "hidden",
       }}
     >
-      {/* Left panel — feature showcase, desktop only */}
+      {/* Left panel - feature showcase, desktop only */}
       <div
         className="hidden lg:flex"
         style={{
@@ -97,7 +97,7 @@ export default function LoginPage() {
 
         <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 380, marginBottom: 48 }}>
           An AI research workspace combining live market data, news feeds,
-          and financial filings into a single sourced report — in seconds.
+          and financial filings into a single sourced report, in seconds.
         </p>
 
         {/* Features */}
@@ -123,7 +123,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right panel — form */}
+      {/* Right panel - form */}
       <div
         style={{
           flex: 1,
@@ -243,7 +243,7 @@ export default function LoginPage() {
               onMouseEnter={(e) => { if (!pending) (e.currentTarget as HTMLButtonElement).style.opacity = "0.85"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = pending ? "0.6" : "1"; }}
             >
-              {pending ? "Signing in…" : "Sign in"}
+              {pending ? "Signing in" : "Sign in"}
             </button>
           </form>
 

@@ -73,7 +73,7 @@ export default function HistoryPage() {
         <div>
           <h1 className="text-2xl font-semibold" style={{ letterSpacing: "-0.018em", fontFamily: "var(--font-serif)" }}>History</h1>
           <p className="mt-0.5 text-sm" style={{ color: "var(--text-muted)" }}>
-            {isLoading ? "Loadingâ€¦" : `${total} report${total !== 1 ? "s" : ""}`}
+            {isLoading ? "Loading..." : `${total} report${total !== 1 ? "s" : ""}`}
           </p>
         </div>
         <Link href="/research/new" className="flex h-8 items-center gap-1.5 rounded-lg px-3 text-sm font-medium"
@@ -87,7 +87,7 @@ export default function HistoryPage() {
       <form onSubmit={handleSearch} className="mb-6 flex gap-2">
         <div className="relative flex-1">
           <Search size={13} strokeWidth={1.5} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
-          <input value={draftQ} onChange={(e) => setDraftQ(e.target.value)} placeholder="Search title or queryâ€¦"
+          <input value={draftQ} onChange={(e) => setDraftQ(e.target.value)} placeholder="Search title or query"
             className="h-9 w-full rounded-lg border pl-9 pr-3 text-sm outline-none"
             style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text)", transition: "border-color 140ms" }}
             onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
@@ -170,7 +170,7 @@ export default function HistoryPage() {
                       <span className="text-xs font-medium" style={{ color: "var(--neg)" }}>Delete?</span>
                       <button onClick={() => deleteMut.mutate(r.id)} disabled={deleteMut.isPending}
                         className="text-xs font-semibold" style={{ color: "var(--neg)" }}>
-                        {deleteMut.isPending ? "â€¦" : "Yes"}
+                        {deleteMut.isPending ? "..." : "Yes"}
                       </button>
                       <span style={{ color: "var(--border)" }}>Â·</span>
                       <button onClick={() => setConfirmId(null)} className="text-xs" style={{ color: "var(--text-muted)" }}>

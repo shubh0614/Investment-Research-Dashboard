@@ -33,14 +33,12 @@ export default async function DashboardPage() {
 
       {/* Top bar: compact greeting + query */}
       <div className="mb-7">
-        <p className="mb-4 text-xs" style={{ color: "var(--text-faint)", fontFamily: "var(--font-mono)" }}>
+        <p className="mb-4 font-mono text-xs" style={{ color: "var(--text-faint)" }}>
           {displayName}
           {org && <> · <span>{org.name}</span></>}
           {" · "}
           <span>{total} report{total !== 1 ? "s" : ""}</span>
         </p>
-
-        {/* Query bar */}
         <QuickSearch />
       </div>
 
@@ -69,19 +67,16 @@ export default async function DashboardPage() {
               </div>
             </div>
           ) : (
-            <div
-              className="overflow-hidden rounded-lg stagger"
-              style={{ border: "1px solid var(--border)" }}
-            >
+            <div className="overflow-hidden rounded-lg stagger" style={{ border: "1px solid var(--border)" }}>
               {reports.map((r, i) => (
-                <Link key={r.id} href={`/research/${r.id}`}
-                  className="group flex items-start justify-between px-4 py-3 transition-colors duration-100"
+                <Link
+                  key={r.id}
+                  href={`/research/${r.id}`}
+                  className="row-hover group flex items-start justify-between px-4 py-3"
                   style={{
                     background: "var(--surface-1)",
                     borderTop: i > 0 ? "1px solid var(--border)" : undefined,
                   }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "var(--surface-2)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "var(--surface-1)"; }}
                 >
                   <div className="min-w-0 flex-1">
                     <p
@@ -137,7 +132,6 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="overflow-hidden rounded-lg" style={{ border: "1px solid var(--border)" }}>
-              {/* Header row */}
               <div
                 className="grid px-4 py-2"
                 style={{
@@ -154,15 +148,13 @@ export default async function DashboardPage() {
                 <Link
                   key={item.id}
                   href={`/research/new?q=${encodeURIComponent(`Give me an overview of ${item.ticker}`)}`}
-                  className="grid px-4 py-2.5 transition-colors duration-100"
+                  className="row-hover grid px-4 py-2.5"
                   style={{
                     gridTemplateColumns: "3rem 1fr 4.5rem",
                     background: "var(--surface-1)",
                     borderTop: i > 0 ? "1px solid var(--border)" : undefined,
                     alignItems: "center",
                   }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "var(--surface-2)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "var(--surface-1)"; }}
                 >
                   <span
                     className="font-mono text-sm font-semibold"
@@ -171,7 +163,7 @@ export default async function DashboardPage() {
                     {item.ticker}
                   </span>
                   <span className="truncate text-xs" style={{ color: "var(--text-muted)" }}>{item.company_name}</span>
-                  <span className="text-right font-mono text-xs" style={{ color: "var(--text-faint)" }}>—</span>
+                  <span className="text-right font-mono text-xs" style={{ color: "var(--text-faint)" }}>-</span>
                 </Link>
               ))}
             </div>

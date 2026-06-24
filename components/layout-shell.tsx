@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Menu, Building2 } from "lucide-react";
@@ -50,7 +50,7 @@ export function LayoutShell({ profile, org, children }: LayoutShellProps) {
         />
       )}
 
-      {/* Sidebar — fixed on mobile, in-flow on desktop */}
+      {/* Sidebar - fixed on mobile, in-flow on desktop */}
       <div
         className="md:relative md:!transform-none md:flex md:h-full"
         style={{
@@ -77,7 +77,7 @@ export function LayoutShell({ profile, org, children }: LayoutShellProps) {
 
       {/* Main content */}
       <main style={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto", minWidth: 0 }}>
-        {/* Mobile top bar — ONLY shown on mobile via className, no inline display style */}
+        {/* Mobile top bar - ONLY shown on mobile via className, no inline display style */}
         <div
           className="flex md:hidden items-center gap-3"
           style={{
