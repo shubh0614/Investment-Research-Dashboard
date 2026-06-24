@@ -9,8 +9,18 @@ import Link from "next/link";
 import { Sparkline } from "./sparkline";
 
 interface WatchlistItem { id: string; ticker: string; company_name: string; created_at: string; }
-interface PriceData { price: number; change_pct: number; series: { date: string; close: number }[]; }
+interface PriceData { price: number; change_pct: number; currency: string; series: { date: string; close: number }[]; }
 interface PricesResponse { prices: Record<string, PriceData>; errors?: Record<string, string>; }
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$", EUR: "€", GBP: "£", INR: "₹", JPY: "¥",
+  HKD: "HK$", AUD: "A$", CAD: "C$", SGD: "S$", KRW: "₩",
+};
+function fmtPrice(price: number, currency = "USD"): string {
+  const sym = CURRENCY_SYMBOLS[currency] ?? currency + " ";
+  const decimals = currency === "JPY" || currency === "KRW" ? 0 : 2;
+  return `${sym}${price.toFixed(decimals)}`;
+}
 
 export default function WatchlistPage() {
   const qc = useQueryClient();
@@ -207,7 +217,7 @@ export default function WatchlistPage() {
                 <span className="text-right font-mono text-sm" style={{ color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>
                   {(pricesLoading || pricesFetching) && !p
                     ? <span className="inline-block h-3 w-14 animate-pulse rounded" style={{ background: "var(--border)" }} />
-                    : p ? `$${p.price.toFixed(2)}`
+                    : p ? fmtPrice(p.price, p.currency)
                     : <span title={priceErrors[item.ticker] ?? "Unavailable"} style={{ color: "var(--text-faint)", cursor: "help" }}>-</span>}
                 </span>
 

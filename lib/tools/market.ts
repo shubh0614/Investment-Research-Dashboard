@@ -23,6 +23,7 @@ export interface MarketDataPayload {
   pe_ratio: number | null;
   forward_pe: number | null;
   revenue_ttm: number | null;
+  currency: string;
   series: MarketDataPoint[];
 }
 
@@ -55,6 +56,7 @@ interface FinnhubMetrics {
 // ── Yahoo Finance response types ──────────────────────────────────────────────
 
 interface YahooMeta {
+  currency?:                   string;
   regularMarketPrice?:         number;
   regularMarketChangePercent?: number;
   regularMarketPreviousClose?: number;
@@ -154,6 +156,7 @@ async function fetchFromYahoo(
         pe_ratio:      null,
         forward_pe:    null,
         revenue_ttm:   null,
+        currency:      meta.currency ?? "USD",
         series:        series.length ? series : [{
           date:   new Date().toISOString().split("T")[0],
           open:   current, high: current, low: current, close: current, volume: 0,
@@ -232,6 +235,7 @@ async function fetchFromFinnhub(
     name:          profile.name || symbol,
     current_price: quote.c,
     change_pct:    parseFloat((quote.dp ?? 0).toFixed(2)),
+    currency:      "USD",
     market_cap:    profile.marketCapitalization
                      ? profile.marketCapitalization * 1_000_000
                      : null,

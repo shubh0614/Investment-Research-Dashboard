@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
   const results = await getMarketData(tickers, "30d", auth.ctx.supabase);
 
-  const prices: Record<string, { price: number; change_pct: number; series: { date: string; close: number }[] }> = {};
+  const prices: Record<string, { price: number; change_pct: number; currency: string; series: { date: string; close: number }[] }> = {};
   const errors: Record<string, string> = {};
 
   for (const [ticker, res] of Object.entries(results)) {
@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
       prices[ticker] = {
         price:      res.data.current_price,
         change_pct: res.data.change_pct,
+        currency:   res.data.currency,
         series:     res.data.series.slice(-30).map((p) => ({ date: p.date, close: p.close })),
       };
     } else {
