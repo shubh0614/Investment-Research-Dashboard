@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local-only files — personal notes, not for submission
+INTERVIEW_PREP.md
+KICKOFF_PHASE_0_1.md
