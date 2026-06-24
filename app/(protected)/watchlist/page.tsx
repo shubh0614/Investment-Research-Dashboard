@@ -10,6 +10,7 @@ import { Sparkline } from "./sparkline";
 
 interface WatchlistItem { id: string; ticker: string; company_name: string; created_at: string; }
 interface PriceData { price: number; change_pct: number; series: { date: string; close: number }[]; }
+interface PricesResponse { prices: Record<string, PriceData>; errors?: Record<string, string>; }
 
 export default function WatchlistPage() {
   const qc = useQueryClient();
@@ -25,18 +26,21 @@ export default function WatchlistPage() {
 
   const items = data?.items ?? [];
 
-  const { data: priceData } = useQuery({
+  const { data: priceData, isLoading: pricesLoading, isFetching: pricesFetching } = useQuery({
     queryKey: ["watchlist-prices", items.map((i) => i.ticker).join(",")],
     queryFn: async () => {
-      if (!items.length) return { prices: {} };
+      if (!items.length) return { prices: {}, errors: {} };
       const tickers = items.map((i) => i.ticker).join(",");
-      return apiFetch<{ prices: Record<string, PriceData> }>(`/api/market-prices?tickers=${tickers}`);
+      return apiFetch<PricesResponse>(`/api/market-prices?tickers=${encodeURIComponent(tickers)}`);
     },
     enabled: items.length > 0,
     staleTime: 5 * 60 * 1000,
   });
 
   const prices: Record<string, PriceData> = priceData?.prices ?? {};
+  const priceErrors: Record<string, string> = priceData?.errors ?? {};
+  const allFailed = items.length > 0 && Object.keys(prices).length === 0 && Object.keys(priceErrors).length > 0;
+  const isRateLimited = Object.values(priceErrors).some((e) => e.includes("rate limit"));
 
   const addMut = useMutation({
     mutationFn: (body: { ticker: string; company_name: string }) =>
@@ -120,6 +124,18 @@ export default function WatchlistPage() {
         {formErr && <p className="mt-2 text-xs" style={{ color: "var(--neg)" }}>{formErr}</p>}
       </form>
 
+      {allFailed && (
+        <div className="mb-4 flex items-start gap-2 rounded-lg border px-4 py-3 text-sm"
+          style={{ background: "color-mix(in srgb, var(--neg) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--neg) 25%, transparent)", color: "var(--neg)" }}>
+          <AlertTriangle size={14} strokeWidth={1.5} className="mt-0.5 shrink-0" />
+          <span>
+            {isRateLimited
+              ? "Market data unavailable: Finnhub rate limit reached. Prices will refresh shortly."
+              : "Market data unavailable: could not fetch prices. Check your MARKET_DATA_API_KEY."}
+          </span>
+        </div>
+      )}
+
       {isLoading && (
         <div className="flex h-32 items-center justify-center">
           <Loader2 size={18} strokeWidth={1.5} className="animate-spin" style={{ color: "var(--text-muted)" }} />
@@ -143,7 +159,7 @@ export default function WatchlistPage() {
           <div
             className="grid items-center px-4 py-2"
             style={{
-              gridTemplateColumns: "3.5rem 1fr 5rem 5.5rem 5rem 7rem",
+              gridTemplateColumns: "3.5rem 1fr 5rem 5.5rem 5rem 13rem",
               background: "var(--surface-2)",
               borderBottom: "1px solid var(--border)",
             }}
@@ -165,7 +181,7 @@ export default function WatchlistPage() {
                 key={item.id}
                 className="grid items-center px-4 py-3"
                 style={{
-                  gridTemplateColumns: "3.5rem 1fr 5rem 5.5rem 5rem 7rem",
+                  gridTemplateColumns: "3.5rem 1fr 5rem 5.5rem 5rem 13rem",
                   background: "var(--surface-1)",
                   borderTop: i > 0 ? "1px solid var(--border)" : undefined,
                   transition: "background 100ms",
@@ -186,7 +202,10 @@ export default function WatchlistPage() {
 
                 {/* Price */}
                 <span className="text-right font-mono text-sm" style={{ color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>
-                  {p ? `$${p.price.toFixed(2)}` : <span style={{ color: "var(--text-faint)" }}>—</span>}
+                  {(pricesLoading || pricesFetching) && !p
+                    ? <span className="inline-block h-3 w-14 animate-pulse rounded" style={{ background: "var(--border)" }} />
+                    : p ? `$${p.price.toFixed(2)}`
+                    : <span title={priceErrors[item.ticker] ?? "Unavailable"} style={{ color: "var(--text-faint)", cursor: "help" }}>-</span>}
                 </span>
 
                 {/* Delta */}
@@ -194,26 +213,25 @@ export default function WatchlistPage() {
                   className="flex items-center justify-end gap-1 font-mono text-sm"
                   style={{ color: up === null ? "var(--text-faint)" : up ? "var(--pos)" : "var(--neg)", fontVariantNumeric: "tabular-nums" }}
                 >
-                  {p ? (
-                    <>
-                      {up ? <TrendingUp size={11} strokeWidth={1.5} /> : <TrendingDown size={11} strokeWidth={1.5} />}
-                      {up ? "+" : ""}{p.change_pct.toFixed(2)}%
-                    </>
-                  ) : "—"}
+                  {(pricesLoading || pricesFetching) && !p
+                    ? <span className="inline-block h-3 w-12 animate-pulse rounded" style={{ background: "var(--border)" }} />
+                    : p ? (
+                      <>
+                        {up ? <TrendingUp size={11} strokeWidth={1.5} /> : <TrendingDown size={11} strokeWidth={1.5} />}
+                        {up ? "+" : ""}{p.change_pct.toFixed(2)}%
+                      </>
+                    ) : <span title={priceErrors[item.ticker] ?? "Unavailable"} style={{ cursor: "help" }}>-</span>}
                 </span>
 
                 {/* Sparkline */}
                 <div className="flex justify-end">
-                  {p?.series?.length ? (
-                    <Sparkline
-                      data={p.series}
-                      up={up ?? true}
-                      width={60}
-                      height={28}
-                    />
-                  ) : (
-                    <span className="font-mono text-xs" style={{ color: "var(--text-faint)" }}>—</span>
-                  )}
+                  {(pricesLoading || pricesFetching) && !p
+                    ? <span className="inline-block h-4 w-14 animate-pulse rounded" style={{ background: "var(--border)" }} />
+                    : p?.series?.length ? (
+                      <Sparkline data={p.series} up={up ?? true} width={60} height={28} />
+                    ) : (
+                      <span className="font-mono text-xs" style={{ color: "var(--text-faint)" }}>-</span>
+                    )}
                 </div>
 
                 {/* Actions */}
@@ -233,7 +251,7 @@ export default function WatchlistPage() {
                       <AlertTriangle size={10} strokeWidth={1.5} style={{ color: "var(--neg)" }} />
                       <button onClick={() => delMut.mutate(item.id)} disabled={delMut.isPending}
                         className="text-xs font-semibold" style={{ color: "var(--neg)", background: "none", border: "none", cursor: "pointer" }}>
-                        {delMut.isPending ? "…" : "Yes"}
+                        {delMut.isPending ? "Yes" : "Yes"}
                       </button>
                       <span style={{ color: "var(--border)" }}>·</span>
                       <button onClick={() => setConfirmId(null)} className="text-xs" style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>
