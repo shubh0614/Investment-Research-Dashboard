@@ -45,6 +45,26 @@ Five diagrams (system overview, query data flow, ER, AI orchestration, multi-ten
 
 ---
 
+## Screenshots
+
+| Login | Dashboard |
+|---|---|
+| ![Login page](screenshots/screenshot-login.png) | ![Dashboard](screenshots/screenshot-dashboard.png) |
+
+| Research Report - Company Card & Metrics | Research Report - News & Risk |
+|---|---|
+| ![Report company view](screenshots/report_1.jpg) | ![Report news view](screenshots/report_2.jpg) |
+
+| Research History | Admin Panel (RBAC) |
+|---|---|
+| ![History](screenshots/screenshot-history.png) | ![Admin](screenshots/screenshot-admin.png) |
+
+| Watchlist |
+|---|
+| ![Watchlist](screenshots/watchlist.jpg) |
+
+---
+
 ## Local Setup
 
 ### Prerequisites
