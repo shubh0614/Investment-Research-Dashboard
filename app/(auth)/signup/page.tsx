@@ -27,8 +27,9 @@ export default function SignupPage() {
       return;
     }
 
-    router.push("/onboarding");
-    router.refresh();
+    // Store email so confirm-email page can display it
+    sessionStorage.setItem("signup_email", email);
+    router.push("/confirm-email");
   }
 
   return (
